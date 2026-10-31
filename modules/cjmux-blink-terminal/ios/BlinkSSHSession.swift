@@ -16,7 +16,7 @@ private enum BlinkSSHSessionError: LocalizedError {
     case .missingAuthentication:
       return "Enter a password or private key for this SSH connection."
     case .unsupportedInteractiveAuthentication:
-      return "This server requested an interactive authentication challenge that AMUX cannot answer safely."
+      return "This server requested an interactive authentication challenge that T-MAX cannot answer safely."
     case .cancelled:
       return "Connection cancelled."
     }
@@ -266,7 +266,7 @@ final class BlinkSSHSession {
           privateKey: try BlinkSSHIdentity.privateKey(
             identityId: configuration.identityId
           ),
-          keyName: "AMUX managed key"
+          keyName: "T-MAX managed key"
         )
       )
     }
@@ -274,7 +274,7 @@ final class BlinkSSHSession {
       methods.append(
         AuthPublicKey(
           privateKey: SSHKey.sanitize(key: configuration.privateKey),
-          keyName: "AMUX"
+          keyName: "T-MAX"
         )
       )
     }
@@ -442,7 +442,7 @@ final class BlinkSSHSession {
     }
     switch sshError {
     case .connError:
-      return "\(sshError.description) If this is a local address, also check that AMUX has Local Network access in iOS Settings."
+      return "\(sshError.description) If this is a local address, also check that T-MAX has Local Network access in iOS Settings."
     default:
       return sshError.description
     }

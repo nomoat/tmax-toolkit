@@ -24,7 +24,7 @@ if [[ "$CHANNEL" == "production" ]]; then
   node scripts/sync-card-actions.mjs --check --deployed https://eng.xyznot.com
 fi
 
-echo "Publishing AMUX OTA"
+echo "Publishing T-MAX OTA"
 echo "  channel: $CHANNEL"
 echo "  app env: $APP_ENV"
 echo "  js version: $JS_UPDATE_VERSION"

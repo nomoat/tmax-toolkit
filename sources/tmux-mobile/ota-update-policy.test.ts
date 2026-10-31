@@ -16,7 +16,7 @@ describe("otaUpdatePolicy", () => {
     expect(policy.applyMode).toBe("cold-start");
     expect(policy.applyLabel).toBe("Restart app");
     expect(policy.readyTitle).toBe("Update downloaded");
-    expect(policy.readyMessage).toContain("Fully quit AMUX");
+    expect(policy.readyMessage).toContain("Fully quit T-MAX");
     expect(policy.readyMessage).toContain("iOS");
   });
 });

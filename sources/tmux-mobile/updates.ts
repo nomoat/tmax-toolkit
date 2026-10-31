@@ -294,7 +294,7 @@ export function useOtaUpdates(): OtaUpdateController {
     setNotice({
       id: `restarting-${Date.now()}`,
       title: "Applying update",
-      message: "AMUX will reload into the downloaded JS bundle.",
+      message: "T-MAX will reload into the downloaded JS bundle.",
       tone: "info",
     });
     try {
@@ -363,7 +363,7 @@ export function useOtaUpdates(): OtaUpdateController {
           setPhase("updated");
           showNotice({
             id: `updated-${runningUpdateId}`,
-            title: "AMUX updated",
+            title: "T-MAX updated",
             message: `Now running JS ${info.jsVersion} (${info.updateLabel}).`,
             tone: "success",
           });

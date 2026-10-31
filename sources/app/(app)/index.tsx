@@ -404,7 +404,7 @@ function cleanSnippetItems(items: Array<UserSnippetItem | string> | undefined | 
 }
 
 const VOICE_CONTEXTUAL_STRINGS = [
-  "AMUX",
+  "T-MAX",
   "Codex",
   "Claude",
   "tmux",
@@ -2050,7 +2050,7 @@ function LoginScreen() {
       <StatusBar style={theme.dark ? "light" : "dark"} />
       <View style={styles.loginPanel}>
         <Image source={APP_LOGO} style={styles.loginLogo} resizeMode="contain" accessible={false} />
-        <Text style={styles.loginTitle}>AMUX</Text>
+        <Text style={styles.loginTitle}>T-MAX</Text>
         <Text style={styles.loginText}>
           Native command center for Codex, Claude and Pi sessions running through tmux-mobile.
         </Text>
@@ -4990,7 +4990,7 @@ function EmbeddedSshModal({
   const isWide = windowWidth / fontScale >= 760;
   const deviceLabel =
     Constants.deviceName ||
-    (Platform.OS === "ios" && Platform.isPad ? "AMUX on iPad" : "AMUX on iPhone");
+    (Platform.OS === "ios" && Platform.isPad ? "T-MAX on iPad" : "T-MAX on iPhone");
 
   const loadDraft = React.useCallback((nextProfile: StoredSshProfile | null, nextHost: string) => {
     setHost(nextProfile?.host || nextHost);
@@ -5366,7 +5366,7 @@ function EmbeddedSshModal({
       <View style={styles.sshSetupIntro}>
         <Text style={styles.sshSetupTitle}>Manual SSH fallback</Text>
         <Text style={styles.sshMutedText}>
-          AMUX normally installs this app installation’s public key automatically. Use this form
+          T-MAX normally installs this app installation’s public key automatically. Use this form
           only when the Controller or Connector cannot authorize it.
         </Text>
       </View>

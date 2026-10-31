@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>AMUX</string>
+	<string>T-MAX</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -62,13 +62,13 @@
 	<key>NSFaceIDUsageDescription</key>
 	<string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>AMUX connects directly to machines you choose over SSH.</string>
+	<string>T-MAX connects directly to machines you choose over SSH.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Allow AMUX to access your microphone for voice commands.</string>
+	<string>Allow T-MAX to access your microphone for voice commands.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Allow AMUX to pick images and send them to tmux panes.</string>
+	<string>Allow T-MAX to pick images and send them to tmux panes.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Allow AMUX to transcribe your voice into prompts.</string>
+	<string>Allow T-MAX to transcribe your voice into prompts.</string>
 	<key>NSUserActivityTypes</key>
 	<array>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>

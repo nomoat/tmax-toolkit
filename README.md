@@ -1,4 +1,4 @@
-# AMUX
+# T-MAX
 
 React Native Command Center client for tmux-mobile.
 

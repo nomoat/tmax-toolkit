@@ -15,15 +15,15 @@ export function otaUpdatePolicy(isIosDevice: boolean): OtaUpdatePolicy {
       applyLabel: "Restart app",
       readyTitle: "Update downloaded",
       readyMessage:
-        "Fully quit AMUX, then reopen it. iOS will install the update on that cold start.",
-      readyStatusLabel: "Downloaded — reopen AMUX",
+        "Fully quit T-MAX, then reopen it. iOS will install the update on that cold start.",
+      readyStatusLabel: "Downloaded — reopen T-MAX",
     };
   }
   return {
     applyMode: "reload",
     applyLabel: "Apply",
     readyTitle: "Update ready",
-    readyMessage: "A new AMUX JS bundle has downloaded. Apply it when you are ready.",
+    readyMessage: "A new T-MAX JS bundle has downloaded. Apply it when you are ready.",
     readyStatusLabel: "Update ready to apply",
   };
 }

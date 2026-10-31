@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 
-// Solarized surfaces and high-contrast dark text, shared with T-Max Web.
+// Solarized surfaces and high-contrast dark text, shared with T-MAX Web.
 const palette = {
   canvas: "#fdf6e3",
   panel: "#fdf6e3",
