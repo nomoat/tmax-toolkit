@@ -2,6 +2,12 @@
 
 React Native Command Center client for tmux-mobile.
 
+Drafts uses a compact native navigation row and a responsive hosted reader
+toolbar for phones and short windows. Loading stays inside the Refresh button
+without adding another slot; Vision controls retain their 64-point targets.
+The hosted Drafts UI must be deployed alongside the JavaScript-only navigation
+update for runtime 7 iOS/Android and runtime 6 Android.
+
 This app is a client only. It authenticates against a tmux-mobile controller
 with the existing Google device-login flow, stores the returned browser session
 token in SecureStore, and calls the same HTTPS API used by the web Command

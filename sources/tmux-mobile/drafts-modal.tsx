@@ -55,9 +55,8 @@ export function DraftsModal({ api, initialPath, theme, onClose, page = 'drafts' 
       <View style={[styles.screen, { backgroundColor: theme.colors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={[styles.header, vision && styles.visionHeader, { borderBottomColor: theme.colors.border }]}>
           {control('Back', <ChevronLeft size={vision ? 26 : 22} color={theme.colors.text} />, back)}
-          <Text style={[styles.title, theme.typography.section, { color: theme.colors.text }]}>{title}</Text>
-          {loading ? <ActivityIndicator color={theme.colors.accent} /> : null}
-          {control(`Refresh ${title.toLowerCase()}`,  <RefreshCcw size={vision ? 26 : 19} color={theme.colors.text} />, () => {
+          <Text numberOfLines={1} style={[styles.title, theme.typography.section, { color: theme.colors.text }]}>{title}</Text>
+          {control(`Refresh ${title.toLowerCase()}`, loading ? <ActivityIndicator color={theme.colors.accent} /> : <RefreshCcw size={vision ? 26 : 19} color={theme.colors.text} />, () => {
             if (error || !source) setAttempt(value => value + 1);
             else browser.current?.reload();
           })}
@@ -113,9 +112,9 @@ export function DraftsModal({ api, initialPath, theme, onClose, page = 'drafts' 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
-  title: { flex: 1, marginLeft: 4 },
+  title: { flex: 1, minWidth: 0, marginLeft: 4 },
   control: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  visionHeader: { gap: 12, paddingVertical: 12, flexWrap: 'wrap' },
+  visionHeader: { gap: 12, paddingVertical: 4 },
   visionControl: { minWidth: 64, width: 64, height: 64, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   error: { padding: 24, gap: 16 },
   retry: { alignSelf: 'flex-start', paddingVertical: 12 },
