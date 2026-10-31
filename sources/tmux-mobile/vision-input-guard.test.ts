@@ -165,12 +165,13 @@ describe("Terminal fullscreen behavior", () => {
 });
 
 describe("Voice input device presentation", () => {
-  it("has one shared streaming toggle and no separate Vision chooser or giant voice row", () => {
+  it("keeps one shared full-width streaming toggle before the draft, without a device chooser", () => {
     expect(appSource).not.toContain("function VisionModeGate(");
     expect(appSource).not.toContain("visionControlsPreference=");
     expect(appSource).not.toContain("style={styles.visionComposerPrimaryRow}");
     expect(appSource).not.toContain("{voiceButton}");
-    expect(appSource).toContain("{streamingButton}");
+    expect(appSource.match(/\{streamingButton\}/g)).toHaveLength(1);
+    expect(appSource).toContain("autoFocus={autoFocus && !onToggleStreaming}");
     expect(appSource).toContain("streamingMode={streamingInput.mode}");
     expect(appSource).toContain("streamingMode={terminalStreamingInput.mode}");
   });

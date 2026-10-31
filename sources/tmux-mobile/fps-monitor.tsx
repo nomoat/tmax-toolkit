@@ -1,5 +1,6 @@
+import { ControlSwitch, useVisionControls } from "./interaction-controls";
 import * as React from 'react';
-import { AppState, Modal as NativeModal, Platform, StyleSheet, Switch, Text, View, type ModalProps } from 'react-native';
+import { AppState, Modal as NativeModal, Platform, StyleSheet, Text, View, type ModalProps } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { runOnJS, useFrameCallback, useSharedValue } from 'react-native-reanimated';
@@ -91,15 +92,16 @@ export function FpsModal({ children, ...props }: ModalProps) {
 }
 
 export function FpsMenuToggle({ theme }: { theme: AppTheme }) {
+  const vision = useVisionControls();
   const enabled = useEnabled();
   if (!native) return null;
-  return <View style={styles.menuRow}>
+  return <View style={[styles.menuRow, vision && { minHeight: 88, gap: 12 }]}>
     <Gauge size={18} color={theme.colors.text} />
     <View style={styles.menuLabel}>
       <Text style={{ color: theme.colors.text, fontSize: 15 }}>Show FPS</Text>
       <Text style={{ color: theme.colors.textMuted, fontSize: 12 }}>UI drawing · JS app logic</Text>
     </View>
-    <Switch accessibilityLabel="Show FPS overlay" value={enabled}
+    <ControlSwitch theme={theme} accessibilityLabel="Show FPS overlay" value={enabled}
       onValueChange={value => { void preference.setEnabled(value); }}
       trackColor={{ true: theme.colors.accent }} />
   </View>;

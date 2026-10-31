@@ -140,3 +140,21 @@ sample, excluding background time. No telemetry is stored or transmitted. The
 browser UI is unchanged. This uses the Reanimated module already in both binaries;
 publish runtime 7 iOS/Android OTA and the runtime 6 Android backport from its own
 lockfile, without native dependency changes.
+
+## Large Vision Pro controls (2026-10-31)
+
+Vision Pro uses visible 64-point controls for machine selection, navigation,
+closing sheets, shortcuts and settings. Close and Send include text, and card
+actions wrap into labelled buttons. Voice remains the only editable-field path
+on Vision Pro; the ordinary composer also stops opening its keyboard by default.
+
+Start/Stop occupies its own full-width row in both Send and Terminal: 80 points
+high on Vision Pro and 64 elsewhere. Cancel while connecting and Wait while
+finishing keep the same target. Secondary controls and status text flow below
+the draft instead of covering it. Recording, cancellation, screen-awake and
+stop-and-send behavior are unchanged.
+
+These are JavaScript-only updates for runtime 7 iOS/Android and the runtime 6
+Android backport using its own lockfile. Native preview checks cover narrow/wide
+layouts, light/dark themes and dictation states; actual gaze selection and
+microphone comfort still require Vision Pro hardware.

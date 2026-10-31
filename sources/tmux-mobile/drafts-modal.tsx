@@ -1,3 +1,4 @@
+import { CloseButton, useVisionControls } from "./interaction-controls";
 import { ASR_PREFERENCE_KEY } from "./asr-provider";
 import { speechPreference } from "./speech-preference";
 import * as React from 'react';
@@ -5,7 +6,7 @@ import { NATIVE_VISION_CONTROLS_DETECTED } from './vision-device';
 import { FpsModal as Modal } from './fps-monitor';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { ChevronLeft, RefreshCcw, X } from 'lucide-react-native';
+import { ChevronLeft, RefreshCcw } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AppTheme } from '@/theme';
 import type { TmuxMobileApi } from './api';
@@ -21,6 +22,7 @@ export function DraftsModal({ api, initialPath, theme, onClose, page = 'drafts' 
   onClose: () => void;
 }) {
   const speechMode = React.useSyncExternalStore(speechPreference.subscribe, speechPreference.getSnapshot);
+  const vision = useVisionControls();
   const title = page === 'terminal' ? 'Temporary terminal' : 'Drafts';
   const insets = useSafeAreaInsets();
   const browser = React.useRef<WebView>(null);
@@ -46,25 +48,25 @@ export function DraftsModal({ api, initialPath, theme, onClose, page = 'drafts' 
   React.useEffect(() => { browser.current?.injectJavaScript(themeScript); }, [themeScript]);
   const back = () => canGoBack ? browser.current?.goBack() : onClose();
   const control = (label: string, icon: React.ReactNode, onPress: () => void) => (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={styles.control} hitSlop={4}>{icon}</Pressable>
+    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={[styles.control, vision && styles.visionControl, vision && { backgroundColor: theme.colors.surfaceRaised }]} hitSlop={vision ? 0 : 4}>{icon}</Pressable>
   );
   return (
     <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={back}>
       <View style={[styles.screen, { backgroundColor: theme.colors.background, paddingTop: insets.top, paddingBottom: insets.bottom }]}>
-        <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
-          {control('Back', <ChevronLeft size={22} color={theme.colors.text} />, back)}
+        <View style={[styles.header, vision && styles.visionHeader, { borderBottomColor: theme.colors.border }]}>
+          {control('Back', <ChevronLeft size={vision ? 26 : 22} color={theme.colors.text} />, back)}
           <Text style={[styles.title, theme.typography.section, { color: theme.colors.text }]}>{title}</Text>
           {loading ? <ActivityIndicator color={theme.colors.accent} /> : null}
-          {control(`Refresh ${title.toLowerCase()}`,  <RefreshCcw size={19} color={theme.colors.text} />, () => {
+          {control(`Refresh ${title.toLowerCase()}`,  <RefreshCcw size={vision ? 26 : 19} color={theme.colors.text} />, () => {
             if (error || !source) setAttempt(value => value + 1);
             else browser.current?.reload();
           })}
-          {control(`Close ${title.toLowerCase()}`,  <X size={22} color={theme.colors.text} />, onClose)}
+          <CloseButton accessibilityLabel={`Close ${title.toLowerCase()}`} theme={theme} onPress={onClose} />
         </View>
         {error ? (
           <View style={styles.error}>
             <Text accessibilityRole="alert" style={{ color: theme.colors.text }}>{error}</Text>
-            <Pressable accessibilityRole="button" onPress={() => setAttempt(value => value + 1)} style={styles.retry}>
+            <Pressable accessibilityRole="button" onPress={() => setAttempt(value => value + 1)} style={[styles.retry, vision && styles.visionControl]}>
               <Text style={{ color: theme.colors.accent }}>Try again</Text>
             </Pressable>
           </View>
@@ -113,6 +115,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, minHeight: 52, borderBottomWidth: StyleSheet.hairlineWidth },
   title: { flex: 1, marginLeft: 4 },
   control: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  visionHeader: { gap: 12, paddingVertical: 12, flexWrap: 'wrap' },
+  visionControl: { minWidth: 64, width: 64, height: 64, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   error: { padding: 24, gap: 16 },
   retry: { alignSelf: 'flex-start', paddingVertical: 12 },
 });

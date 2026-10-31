@@ -1,3 +1,4 @@
+import { useVisionControls } from "./interaction-controls";
 import * as React from 'react';
 import { FpsModal as Modal } from './fps-monitor';
 import { Platform, Pressable, ScrollView, StyleSheet, Text, View, type AlertButton } from 'react-native';
@@ -8,6 +9,7 @@ type Request = { title: string; message: string; buttons: AlertButton[] };
 // Each owner renders its dialog inside its own sheet, so confirmations also work
 // above iOS native modals (SSH, saved files), rather than behind them.
 export function useAppDialog(theme: AppTheme, enabled = true) {
+  const vision = useVisionControls();
   const insets = useSafeAreaInsets();
   const available = React.useRef(enabled);
   available.current = enabled;
@@ -48,7 +50,7 @@ export function useAppDialog(theme: AppTheme, enabled = true) {
             {request?.message ? <Text selectable style={[theme.typography.body, { color: theme.colors.textMuted }]}>{request.message}</Text> : null}
             <View style={styles.actions}>
               {request?.buttons.map((button, index) => <Pressable key={index} accessibilityRole="button" onPress={() => finish(button)}
-                style={[styles.button, { borderColor: theme.colors.border, backgroundColor: button.style === 'destructive' ? theme.colors.danger : theme.colors.surfaceRaised }]}>
+                style={[styles.button, vision && { minHeight: 64, minWidth: 112 }, { borderColor: theme.colors.border, backgroundColor: button.style === 'destructive' ? theme.colors.danger : theme.colors.surfaceRaised }]}>
                 <Text style={[theme.typography.body, { color: button.style === 'destructive' ? '#ffffff' : theme.colors.text }]}>{button.text || 'OK'}</Text>
               </Pressable>)}
             </View>

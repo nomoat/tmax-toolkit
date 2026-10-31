@@ -1,5 +1,6 @@
+import { ControlSwitch, useVisionControls } from "./interaction-controls";
 import * as React from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Switch, Text, TextInput, View, type TextInputProps } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, type TextInputProps } from "react-native";
 import type { AppTheme } from "@/theme";
 import { useTmuxMobileApi } from "./auth";
 
@@ -7,6 +8,7 @@ type Settings = { enabled: boolean; start: string; end: string; timeZone: string
 type Response = { settings: Settings; canEdit: boolean };
 
 export function NotificationSettings({ visible, theme, InputComponent = TextInput }: { visible: boolean; theme: AppTheme; InputComponent?: React.ComponentType<TextInputProps> }) {
+  const vision = useVisionControls();
   const api = useTmuxMobileApi();
   const [saved, setSaved] = React.useState<Settings | null>(null);
   const [draft, setDraft] = React.useState<Settings | null>(null);
@@ -24,9 +26,9 @@ export function NotificationSettings({ visible, theme, InputComponent = TextInpu
     text: { color: c.text, fontSize: 14 },
     hint: { color: c.textMuted, fontSize: 13, lineHeight: 19 },
     input: { color: c.text, backgroundColor: c.surfaceRaised, borderColor: c.border, borderWidth: 1, borderRadius: 8, padding: 12, minHeight: 46, marginTop: 6 },
-    button: { minHeight: 44, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: c.border, borderRadius: 8, padding: 10 },
+    button: { minHeight: vision ? 64 : 44, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: c.border, borderRadius: 8, padding: 10 },
     disabled: { opacity: 0.5 },
-  }), [c]);
+  }), [c, vision]);
 
   React.useEffect(() => {
     const current = ++generation.current;
@@ -66,11 +68,11 @@ export function NotificationSettings({ visible, theme, InputComponent = TextInpu
     {draft ? <>
       <View style={styles.row}>
         <Text style={styles.text}>Quiet hours</Text>
-        <Switch accessibilityLabel="Quiet hours" value={draft.enabled} disabled={!editable} onValueChange={enabled => setDraft({ ...draft, enabled })} trackColor={{ true: c.accent }} />
+        <ControlSwitch theme={theme} accessibilityLabel="Quiet hours" value={draft.enabled} disabled={!editable} onValueChange={enabled => setDraft({ ...draft, enabled })} trackColor={{ true: c.accent }} />
       </View>
       <Text style={styles.hint}>Off means notifications can arrive at any time. Muted messages are not sent later.</Text>
       {draft.enabled ? <>
-        <View style={styles.row}>
+        <View style={[styles.row, vision && { flexDirection: "column", alignItems: "stretch" }]}>
           {([['start', 'From'], ['end', 'Until']] as const).map(([key, label]) => <View key={key} style={{ flex: 1 }}>
             <Text style={styles.text}>{label} (24h)</Text>
             <InputComponent accessibilityLabel={label} style={styles.input} value={draft[key]} editable={editable} autoCorrect={false} autoCapitalize="none" placeholder="HH:mm" placeholderTextColor={c.textMuted} maxLength={5} onChangeText={value => setDraft({ ...draft, [key]: value })} />

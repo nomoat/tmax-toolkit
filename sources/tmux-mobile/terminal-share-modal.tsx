@@ -1,8 +1,8 @@
+import { CloseButton, ControlSwitch, useVisionControls } from "./interaction-controls";
 import * as React from 'react';
 import { FpsModal as Modal } from './fps-monitor';
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { X } from 'lucide-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { AppTheme } from '@/theme';
 import type { TmuxMobileApi } from './api';
@@ -13,6 +13,7 @@ import { SHARE_DURATIONS, terminalShareUrl, type TerminalShareAction, type Termi
 export function TerminalShareModal({ api, target, theme, onClose }: {
   api: TmuxMobileApi; target: AgentSession; theme: AppTheme; onClose: () => void;
 }) {
+  const vision = useVisionControls();
   const insets = useSafeAreaInsets();
   const [share, setShare] = React.useState<TerminalShareState>({});
   const [ttl, setTtl] = React.useState<number>(86400);
@@ -63,7 +64,7 @@ export function TerminalShareModal({ api, target, theme, onClose }: {
   };
   const button = (label: string, onPress: () => void, disabled = busy, danger = false) => (
     <Pressable accessibilityRole="button" accessibilityState={{ disabled }} disabled={disabled} onPress={onPress}
-      style={[styles.button, { borderColor: theme.colors.border, opacity: disabled ? 0.45 : 1 }]}>
+      style={[styles.button, vision && styles.visionButton, { borderColor: theme.colors.border, opacity: disabled ? 0.45 : 1 }]}>
       <Text style={[theme.typography.body, { color: danger ? theme.colors.danger : theme.colors.text }]}>{label}</Text>
     </Pressable>
   );
@@ -71,9 +72,9 @@ export function TerminalShareModal({ api, target, theme, onClose }: {
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={[styles.backdrop, { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 16 }]}>
         <View style={[styles.sheet, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>
-          <View style={styles.header}>
+          <View style={[styles.header, vision && { padding: 16, gap: 12 }]}>
             <Text style={[styles.title, theme.typography.section, { color: theme.colors.text }]}>Share terminal</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Close terminal sharing" style={styles.close} onPress={onClose}><X size={22} color={theme.colors.text} /></Pressable>
+            <CloseButton accessibilityLabel="Close terminal sharing" theme={theme} onPress={onClose} />
           </View>
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={[theme.typography.meta, { color: theme.colors.textMuted }]}>{target.machineHostname || target.machineId} · {target.windowName || target.sessionName || target.windowId || target.paneId}</Text>
@@ -82,13 +83,13 @@ export function TerminalShareModal({ api, target, theme, onClose }: {
             <View style={styles.actions}>
               {SHARE_DURATIONS.map(item => <Pressable key={item.seconds} accessibilityRole="radio" accessibilityLabel={item.label}
                 accessibilityState={{ checked: ttl === item.seconds, disabled: busy || Boolean(url) }} disabled={busy || Boolean(url)} onPress={() => setTtl(item.seconds)}
-                style={[styles.button, { borderColor: ttl === item.seconds ? theme.colors.accent : theme.colors.border, backgroundColor: ttl === item.seconds ? theme.colors.surfaceRaised : theme.colors.surface }]}>
+                style={[styles.button, vision && styles.visionButton, { borderColor: ttl === item.seconds ? theme.colors.accent : theme.colors.border, backgroundColor: ttl === item.seconds ? theme.colors.surfaceRaised : theme.colors.surface }]}>
                 <Text style={[theme.typography.body, { color: theme.colors.text }]}>{item.label}</Text>
               </Pressable>)}
             </View>
             <View style={styles.permission}>
               <Text style={[styles.title, theme.typography.body, { color: theme.colors.text }]}>Allow viewers to type and run commands</Text>
-              <Switch accessibilityLabel="Allow viewers to type and run commands" value={allowControl} onValueChange={setAllowControl} disabled={busy || Boolean(url)} trackColor={{ true: theme.colors.accent }} />
+              <ControlSwitch theme={theme} accessibilityLabel="Allow viewers to type and run commands" value={allowControl} onValueChange={setAllowControl} disabled={busy || Boolean(url)} trackColor={{ true: theme.colors.accent }} />
             </View>
             {busy ? <ActivityIndicator accessibilityLabel="Updating terminal sharing" color={theme.colors.accent} /> : null}
             {error ? <Text accessibilityRole="alert" style={[theme.typography.body, { color: theme.colors.danger }]}>{error}</Text> : null}
@@ -112,5 +113,6 @@ const styles = StyleSheet.create({
   title: { flex: 1 }, close: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 16 }, actions: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   button: { borderWidth: 1, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, minHeight: 44, justifyContent: 'center', alignItems: 'center' },
+  visionButton: { minHeight: 64, minWidth: 96, paddingHorizontal: 20 },
   permission: { flexDirection: 'row', gap: 12, alignItems: 'center' }, link: { borderRadius: 8, padding: 12 },
 });
