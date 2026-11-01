@@ -69,10 +69,10 @@ checkout/lockfile. This change adds no native module and requires no binary buil
 
 ## Shared card actions (2026-10-22)
 
-Web, iOS and Android use one compact 32px-high row of ten icons:
-Send message, Conversation, Drafts, Transcript, Read aloud, Open terminal,
+Web, iOS and Android use one compact 32px-high row of nine icons:
+Send message, Conversation, Drafts, Transcript, Open terminal,
 Share terminal, Copy conversation link, Rename window, Complete and delete window.
-All ten buttons fit in 240px; narrower cards scroll horizontally and never wrap.
+All nine buttons fit in 216px; narrower cards scroll horizontally and never wrap.
 Unavailable actions keep their disabled slots. Long-press an icon for its name
 and explanation. `sources/tmux-mobile/card-actions.js` is an exact bundled copy of
 the Web repository's `public/card-actions.js`; do not edit the copy by hand.

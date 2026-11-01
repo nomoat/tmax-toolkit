@@ -1,5 +1,5 @@
-export type CardActionId = 'interact' | 'conversation' | 'drafts' | 'transcript' | 'read' | 'terminal' | 'share' | 'copyLink' | 'rename' | 'delete';
-export type CardIconId = CardActionId | 'stop';
+export type CardActionId = 'interact' | 'conversation' | 'drafts' | 'transcript' | 'terminal' | 'share' | 'copyLink' | 'rename' | 'delete';
+export type CardIconId = CardActionId;
 export type CardAction = { id: CardActionId; label: string; hint: string };
 export const CARD_ACTION_LAYOUT: { minWidth: number; height: number; gap: number };
 export const CARD_ACTIONS: readonly CardAction[];

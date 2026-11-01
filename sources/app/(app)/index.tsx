@@ -43,11 +43,6 @@ import * as Haptics from "expo-haptics";
 import * as ImagePicker from "expo-image-picker";
 import { MEDIA_LIBRARY_OPTIONS, mediaUploadAsset } from "@/tmux-mobile/media-upload";
 import * as SecureStore from "expo-secure-store";
-import {
-  setAudioModeAsync,
-  useAudioPlayer,
-  useAudioPlayerStatus,
-} from "expo-audio";
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from "expo-speech-recognition";
 import { StatusBar } from "expo-status-bar";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
@@ -796,8 +791,6 @@ function CommandCenterScreen() {
   const auth = useTmuxMobileAuth();
   const api = useTmuxMobileApi();
   const queryClient = useQueryClient();
-  const shortcutAudioPlayer = useAudioPlayer(null, { updateInterval: 250 });
-  const shortcutAudioStatus = useAudioPlayerStatus(shortcutAudioPlayer);
   const commandCenter = useCommandCenter();
   const cardStars = useCardStars();
   const toggleCardStar = useToggleCardStar();
@@ -826,15 +819,6 @@ function CommandCenterScreen() {
   const listScrollOffset = React.useRef(0);
   const jumpGeneration = React.useRef(0);
   const jumpTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shortcutReadGeneration = React.useRef(0);
-  const shortcutReadAbort = React.useRef<AbortController | null>(null);
-  const shortcutActiveRead = React.useRef<{
-    generation: number;
-    agentKey: string;
-    phase: "requesting" | "starting" | "playing";
-    initialError: string | null;
-  } | null>(null);
-  const [activeReadAgentKey, setActiveReadAgentKey] = React.useState("");
   const [startVisible, setStartVisible] = React.useState(false);
   const [menuVisible, setMenuVisible] = React.useState(false);
   const [cardSort, setCardSort] = React.useState<CardSort>("current");
@@ -1293,136 +1277,6 @@ function CommandCenterScreen() {
       settingsVisible,
   );
 
-  const stopShortcutRead = React.useCallback(() => {
-    shortcutReadGeneration.current += 1;
-    shortcutReadAbort.current?.abort();
-    shortcutReadAbort.current = null;
-    shortcutActiveRead.current = null;
-    setActiveReadAgentKey("");
-    shortcutAudioPlayer.pause();
-    shortcutAudioPlayer.replace({});
-  }, [shortcutAudioPlayer]);
-
-  const readShortcutAgent = React.useCallback(
-    async (agent: AgentSession) => {
-      const key = agentCardKey(agent);
-      if (shortcutActiveRead.current?.agentKey === key) {
-        stopShortcutRead();
-        return;
-      }
-      if (!api) return;
-
-      if (shortcutActiveRead.current) stopShortcutRead();
-      const generation = shortcutReadGeneration.current + 1;
-      const abortController = new AbortController();
-      shortcutReadGeneration.current = generation;
-      shortcutReadAbort.current = abortController;
-      shortcutActiveRead.current = {
-        generation,
-        agentKey: key,
-        phase: "requesting",
-        initialError: shortcutAudioStatus.error,
-      };
-      setActiveReadAgentKey(key);
-
-      try {
-        const response = await api.windowAudioSummary({
-          machineId: agentMachineKey(agent),
-          mux: agent.mux || "tmux",
-          paneId: agent.paneId,
-          windowId: agent.windowId,
-          signal: abortController.signal,
-        });
-        if (
-          shortcutReadGeneration.current !== generation ||
-          shortcutActiveRead.current?.generation !== generation
-        ) {
-          return;
-        }
-        if (!response.audioBase64) {
-          throw new Error("The controller returned no audio.");
-        }
-        await setAudioModeAsync({ playsInSilentMode: true });
-        if (
-          shortcutReadGeneration.current !== generation ||
-          shortcutActiveRead.current?.generation !== generation
-        ) {
-          return;
-        }
-        const mimeType = response.mimeType || "audio/mpeg";
-        shortcutActiveRead.current.phase = "starting";
-        shortcutAudioPlayer.replace({
-          uri: `data:${mimeType};base64,${response.audioBase64}`,
-        });
-        shortcutAudioPlayer.play();
-      } catch (error) {
-        if (
-          shortcutReadGeneration.current !== generation ||
-          shortcutActiveRead.current?.generation !== generation
-        ) {
-          return;
-        }
-        shortcutReadAbort.current = null;
-        shortcutActiveRead.current = null;
-        setActiveReadAgentKey("");
-        if (error instanceof Error && error.name === "AbortError") return;
-        appDialog.show(
-          "Read aloud failed",
-          error instanceof Error ? error.message : String(error),
-        );
-      }
-    },
-    [
-      api,
-      shortcutAudioPlayer,
-      shortcutAudioStatus.error,
-      stopShortcutRead,
-    ],
-  );
-
-  React.useEffect(() => {
-    const activeRead = shortcutActiveRead.current;
-    if (!activeRead || activeRead.phase === "requesting") return;
-    if (activeRead.phase === "starting") {
-      if (shortcutAudioStatus.playing) activeRead.phase = "playing";
-      else if (
-        shortcutAudioStatus.error &&
-        shortcutAudioStatus.error !== activeRead.initialError
-      ) {
-        shortcutReadAbort.current = null;
-        shortcutActiveRead.current = null;
-        setActiveReadAgentKey("");
-        appDialog.show("Read aloud failed", shortcutAudioStatus.error);
-      }
-      return;
-    }
-    if (shortcutAudioStatus.didJustFinish) {
-      shortcutReadAbort.current = null;
-      shortcutActiveRead.current = null;
-      setActiveReadAgentKey("");
-      shortcutAudioPlayer.replace({});
-      return;
-    }
-    if (shortcutAudioStatus.error) {
-      shortcutReadAbort.current = null;
-      shortcutActiveRead.current = null;
-      setActiveReadAgentKey("");
-      appDialog.show("Read aloud failed", shortcutAudioStatus.error);
-    }
-  }, [
-    shortcutAudioStatus.didJustFinish,
-    shortcutAudioStatus.error,
-    shortcutAudioStatus.playing,
-    shortcutAudioPlayer,
-  ]);
-
-  React.useEffect(
-    () => () => {
-      stopShortcutRead();
-    },
-    [api, stopShortcutRead],
-  );
-
   const handleCommandCenterKeyDown = React.useCallback(
     (event: unknown) => {
       const e = event as {
@@ -1499,13 +1353,6 @@ function CommandCenterScreen() {
         return;
       }
 
-      if (shortcut.type === "stop-reading") {
-        if (!shortcutActiveRead.current) return;
-        e.preventDefault?.();
-        stopShortcutRead();
-        return;
-      }
-
       const agent = activeShortcutAgent;
       if (!agent) return;
       if (shortcut.type === "view") {
@@ -1516,10 +1363,6 @@ function CommandCenterScreen() {
         e.preventDefault?.();
         setSelectedAgent(agent);
         setSendTarget(agent);
-      } else if (shortcut.type === "read") {
-        e.preventDefault?.();
-        setSelectedAgent(agent);
-        void readShortcutAgent(agent);
       } else if (shortcut.type === "response") {
         e.preventDefault?.();
         if (agent.lastAssistantText) {
@@ -1543,7 +1386,6 @@ function CommandCenterScreen() {
       shareTarget,
       draftsPath,
       temporaryPath,
-      readShortcutAgent,
       renameTarget,
       refreshCommandCenter,
       responseTarget,
@@ -1552,7 +1394,6 @@ function CommandCenterScreen() {
       settingsVisible,
       sshTarget,
       startVisible,
-      stopShortcutRead,
       transcriptTarget,
       viewTarget,
     ],
@@ -1856,15 +1697,10 @@ function CommandCenterScreen() {
                           selectAgent();
                           pinAssistantResponse(item);
                         }}
-                        onReadAloud={() => {
-                          selectAgent();
-                          void readShortcutAgent(item);
-                        }}
                         onOpenFile={(path) => openAgentFile(item, path)}
                         promptCopied={copiedPromptKey === key}
                         responseCopied={copiedResponseKey === key}
                         responsePinning={pinningResponseKey === key}
-                        reading={activeReadAgentKey === key}
                         onShareTerminal={() => setShareTarget(item)}
                         onDrafts={() => {
                           const path = sessionDraftsPath(item);
@@ -2480,12 +2316,10 @@ function AgentCard({
   onCopyPrompt,
   onCopyResponse,
   onPinResponse,
-  onReadAloud,
   onOpenFile,
   promptCopied,
   responseCopied,
   responsePinning,
-  reading,
   onTranscript,
   onDrafts,
   onConversation,
@@ -2509,12 +2343,10 @@ function AgentCard({
   onCopyPrompt: () => void;
   onCopyResponse: () => void;
   onPinResponse: () => void;
-  onReadAloud: () => void;
   onOpenFile: (path: string) => void;
   promptCopied: boolean;
   responseCopied: boolean;
   responsePinning: boolean;
-  reading: boolean;
   onTranscript: () => void;
   onDrafts: () => void;
   onConversation: () => void;
@@ -2719,14 +2551,12 @@ function AgentCard({
           ) : null}
           <CardActionBar
             agent={agent}
-            reading={reading}
             theme={theme}
             handlers={{
               interact: onSend,
               conversation: onConversation,
               drafts: onDrafts,
               transcript: onTranscript,
-              read: onReadAloud,
               terminal: onView,
               share: onShareTerminal,
               copyLink: onCopyConversation,

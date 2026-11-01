@@ -31,10 +31,6 @@ describe("resolveCommandCenterShortcut", () => {
     ["O", { type: "view" }],
     ["r", { type: "reply" }],
     ["R", { type: "reply" }],
-    ["i", { type: "read" }],
-    ["I", { type: "read" }],
-    ["s", { type: "stop-reading" }],
-    ["S", { type: "stop-reading" }],
     ["f", { type: "response" }],
     ["F", { type: "response" }],
     ["t", { type: "transcript" }],
@@ -77,10 +73,9 @@ describe("resolveCommandCenterShortcut", () => {
     },
   );
 
-  it("allows repeated read-aloud so it can toggle the current read like Web", () => {
-    expect(resolveCommandCenterShortcut({ key: "i", repeat: true })).toEqual({
-      type: "read",
-    });
+  it.each(["i", "I", "s", "S"])("ignores retired read-aloud key %s from existing native bridges", (key) => {
+    expect(resolveCommandCenterShortcut({ key })).toBeNull();
+    expect(resolveCommandCenterShortcut({ key, repeat: true })).toBeNull();
   });
 
   it.each([
@@ -124,7 +119,7 @@ describe("resolveCommandCenterShortcut", () => {
     },
   );
 
-  it("keeps the iPad native bridge on the Web shortcut key contract", () => {
+  it("preserves the installed iPad native bridge key set for OTA compatibility", () => {
     const swift = readFileSync(
       new URL(
         "../../modules/cjmux-keyboard-shortcuts/ios/CJMUXKeyboardShortcutsModule.swift",

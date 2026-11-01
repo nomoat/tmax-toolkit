@@ -24,7 +24,7 @@ describe("Command Center card action parity", () => {
     expect(cardSource).toContain("<CardActionBar");
     for (const binding of [
       "interact: onSend", "conversation: onConversation", "drafts: onDrafts",
-      "transcript: onTranscript", "read: onReadAloud", "terminal: onView",
+      "transcript: onTranscript", "terminal: onView",
       "share: onShareTerminal", "copyLink: onCopyConversation",
       "rename: onRename", "delete: onDelete",
     ]) expect(cardSource).toContain(binding);

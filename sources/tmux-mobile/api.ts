@@ -46,16 +46,6 @@ export interface TranscribeAudioResponse {
   model?: string;
 }
 
-export interface WindowAudioSummaryResponse {
-  summary?: string;
-  audioBase64?: string;
-  mimeType?: string;
-  paneId?: string;
-  windowId?: string;
-  speechModel?: string;
-  voice?: string;
-}
-
 export interface AuthorizeSshInput {
   publicKey: string;
   deviceId: string;
@@ -471,29 +461,6 @@ export class TmuxMobileApi {
     if (options.latest) params.set("latest", "1");
     return this.request(`/api/agent-transcript?${params.toString()}`, {
       machineId, signal: options.signal, headers: { "x-mux": options.mux || "tmux" },
-    });
-  }
-
-  windowAudioSummary(input: {
-    machineId: string;
-    mux?: string;
-    paneId?: string;
-    windowId?: string;
-    lines?: number;
-    signal?: AbortSignal;
-  }): Promise<WindowAudioSummaryResponse> {
-    return this.request("/api/window-audio-summary", {
-      method: "POST",
-      machineId: input.machineId,
-      headers: {
-        "x-mux": input.mux || "tmux",
-      },
-      body: {
-        paneId: input.paneId || "",
-        windowId: input.windowId || "",
-        lines: input.lines,
-      },
-      signal: input.signal,
     });
   }
 

@@ -4,8 +4,6 @@ export type CommandCenterShortcut =
   | { type: "move"; direction: CommandCenterShortcutDirection }
   | { type: "view" }
   | { type: "reply" }
-  | { type: "read" }
-  | { type: "stop-reading" }
   | { type: "response" }
   | { type: "transcript" }
   | { type: "refresh" }
@@ -82,10 +80,6 @@ export function resolveCommandCenterShortcut(
         shortcut = { type: "view" };
       } else if (lowered === "r") {
         shortcut = { type: "reply" };
-      } else if (lowered === "i") {
-        shortcut = { type: "read" };
-      } else if (lowered === "s") {
-        shortcut = { type: "stop-reading" };
       } else if (lowered === "f") {
         shortcut = { type: "response" };
       } else if (lowered === "t") {

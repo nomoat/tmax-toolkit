@@ -7,7 +7,7 @@ import { cardActionItems, type CardActionHandlers } from './card-action-state';
 import type { AgentSession } from './types';
 import { useVisionControls } from './interaction-controls';
 
-const visionLabels: Record<CardActionId, string> = { interact: 'Send', conversation: 'Conversation', drafts: 'Drafts', transcript: 'Transcript', read: 'Read aloud', terminal: 'Terminal', share: 'Share', copyLink: 'Copy link', rename: 'Rename', delete: 'Complete & delete' };
+const visionLabels: Record<CardActionId, string> = { interact: 'Send', conversation: 'Conversation', drafts: 'Drafts', transcript: 'Transcript', terminal: 'Terminal', share: 'Share', copyLink: 'Copy link', rename: 'Rename', delete: 'Complete & delete' };
 
 const shapes = { circle: Circle, line: Line, path: Path, polyline: Polyline, rect: Rect };
 
@@ -20,12 +20,12 @@ export function CardActionIcon({ id, color, size = 18 }: { id: CardIconId; color
   </Svg>;
 }
 
-export function CardActionBar({ agent, reading, handlers, theme }: {
-  agent: AgentSession; reading: boolean; handlers: CardActionHandlers; theme: AppTheme;
+export function CardActionBar({ agent, handlers, theme }: {
+  agent: AgentSession; handlers: CardActionHandlers; theme: AppTheme;
 }) {
   const [hint, setHint] = React.useState<string | null>(null);
   const vision = useVisionControls();
-  const items = cardActionItems(agent, reading, handlers);
+  const items = cardActionItems(agent, handlers);
   const buttons = items.map(action => <Pressable
     key={action.id}
     testID={`card-action-${action.id}`}
@@ -40,12 +40,12 @@ export function CardActionBar({ agent, reading, handlers, theme }: {
     style={({ pressed }) => [vision ? styles.visionButton : styles.button, {
       borderRadius: theme.radii.md,
       borderColor: theme.colors.border,
-      backgroundColor: action.active ? theme.colors.accentSoft : pressed ? theme.colors.surfaceMuted : vision ? theme.colors.surface : 'transparent',
+      backgroundColor: pressed ? theme.colors.surfaceMuted : vision ? theme.colors.surface : 'transparent',
       opacity: action.disabled ? 0.45 : 1,
     }]}
   >
-    <CardActionIcon id={action.icon} size={vision ? 26 : 18} color={action.active ? theme.colors.accent : theme.colors.textMuted} />
-    {vision ? <Text style={[styles.visionLabel, { color: theme.colors.text }]}>{action.id === 'read' && reading ? 'Stop reading' : visionLabels[action.id]}</Text> : null}
+    <CardActionIcon id={action.icon} size={vision ? 26 : 18} color={theme.colors.textMuted} />
+    {vision ? <Text style={[styles.visionLabel, { color: theme.colors.text }]}>{visionLabels[action.id]}</Text> : null}
   </Pressable>);
   return <View style={styles.bar} testID="card-actions">
     {hint ? <View pointerEvents="none" style={[styles.hint, { backgroundColor: theme.colors.surface, borderColor: theme.colors.border }]}>

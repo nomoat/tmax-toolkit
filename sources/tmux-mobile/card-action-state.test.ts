@@ -5,25 +5,21 @@ import { CARD_ACTIONS, CARD_ACTION_LAYOUT } from './card-actions';
 import { cardActionItems, type CardActionHandlers } from './card-action-state';
 import type { AgentSession } from './types';
 
-const order = ['interact', 'conversation', 'drafts', 'transcript', 'read', 'terminal', 'share', 'copyLink', 'rename', 'delete'];
+const order = ['interact', 'conversation', 'drafts', 'transcript', 'terminal', 'share', 'copyLink', 'rename', 'delete'];
 const agent = { machineId: 'machine', kind: 'codex', agentSessionId: 'session', mux: 'tmux', windowId: '@1', paneId: '%1' } as AgentSession;
 const handlers = () => Object.fromEntries(CARD_ACTIONS.map(action => [action.id, vi.fn()])) as unknown as CardActionHandlers;
 
 describe('shared card actions', () => {
   it('retains the same compact action order when session identity or terminal sharing is unavailable', () => {
-    const items = cardActionItems({ ...agent, agentSessionId: undefined, paneId: undefined, mux: 'rmux' }, false, handlers());
+    const items = cardActionItems({ ...agent, agentSessionId: undefined, paneId: undefined, mux: 'rmux' }, handlers());
     expect(CARD_ACTION_LAYOUT.height).toBe(32);
     expect(items.map(action => action.id)).toEqual(order);
     expect(items.filter(action => action.disabled).map(action => action.id)).toEqual(['conversation', 'drafts', 'transcript', 'share', 'copyLink']);
   });
 
-  it('dispatches each position to its own operation, including stop reading', () => {
+  it('dispatches each position to its own operation', () => {
     const operations = handlers();
-    const items = cardActionItems({ ...agent, fullTextError: 'stale response' }, true, operations);
-    const read = items[4];
-    expect(read.label).toBe('Stop reading');
-    expect(read.disabled).toBe(false);
-    expect(read.icon).toBe('stop');
+    const items = cardActionItems({ ...agent, fullTextError: 'stale response' }, operations);
     for (const [index, item] of items.entries()) {
       item.onPress();
       for (const [id, handler] of Object.entries(operations)) expect(handler).toHaveBeenCalledTimes(order.indexOf(id) <= index ? 1 : 0);
