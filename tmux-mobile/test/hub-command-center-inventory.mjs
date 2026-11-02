@@ -130,8 +130,11 @@ try {
     const snapshot = hub.commandCenterInventory(viewer, machine.id);
     return snapshot?.machine?.inventoryStatus === "failed" ? snapshot : null;
   });
-  assert.equal(failed.machine.agentCount, 0, "failed inventory does not count old agents");
-  assert.equal(failed.agents.length, 0, "failed inventory does not expose old agents");
+  assert.equal(failed.machine.agentCount, 1, "failed inventory retains the last successful count");
+  assert.equal(failed.agents.length, 1, "failed inventory retains display data");
+  assert.equal(failed.agents[0].transcriptStatus, "stale");
+  assert.equal(failed.agents[0].status, "unverified");
+  assert.equal(failed.machine.inventoryObservedAt, fresh.machine.inventoryObservedAt, "failure must not reset data age");
   assert.match(failed.machine.inventoryError, /scan exploded/);
 
   ws.send(
@@ -162,8 +165,8 @@ try {
     const snapshot = hub.commandCenterInventory(viewer, machine.id);
     return snapshot?.machine?.inventoryStatus === "stale" ? snapshot : null;
   });
-  assert.equal(stale.machine.agentCount, 0, "stale inventory does not count old agents");
-  assert.equal(stale.agents.length, 0, "stale inventory does not expose old agents");
+  assert.equal(stale.machine.agentCount, 1, "stale inventory retains the last successful count");
+  assert.equal(stale.agents.length, 1, "stale inventory retains display data");
   assert.equal(
     hub.listAllCommandCenterInventories()[0].agents.length,
     0,
@@ -203,6 +206,9 @@ try {
   assert.equal(recovered.machine.agentCount, 1, "fresh inventory recovers after stale");
   assert.equal(recovered.agents[0].sessionName, "recovered");
 
+  ws.send(JSON.stringify(inventoryFrame({ ok: true, observedAt: Date.now(), agents: [] })));
+  await waitFor("confirmed empty inventory", () => hub.commandCenterInventory(viewer, machine.id).agents.length === 0);
+  assert.equal(hub.commandCenterInventory(viewer, machine.id).machine.inventoryStatus, "fresh");
   console.log("hub command-center inventory tests passed");
 } finally {
   ws?.disconnect();

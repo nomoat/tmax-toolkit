@@ -11,6 +11,7 @@ import { isPiCommand, installPiExtension } from "./lib/pi-runtime.mjs";
 import { createProgressReports, createGeminiSummarizer, loadReportConfig, validReportId } from './lib/progress-reports.mjs';
 import { createConversationReader } from "./lib/conversation.mjs";
 import { latestTranscriptMessages } from "./lib/latest-transcript.mjs";
+import { createTranscriptSnapshotCache } from "./lib/transcript-snapshot.mjs";
 import { readFileSync } from "node:fs";
 import http from "node:http";
 import { readFile } from "node:fs/promises";
@@ -2618,6 +2619,8 @@ async function safeAgentLastResponse(pane) {
   }
 }
 
+const transcriptSnapshots = new WeakMap();
+
 async function safeAgentTranscript(pane, processes = null, openFiles = null) {
   if (!pane?.pid) return null;
   const backend = currentBackend();
@@ -2645,6 +2648,7 @@ async function safeAgentTranscript(pane, processes = null, openFiles = null) {
           agentSessionTitleSource: exactClaudeSession.agentSessionTitleSource || "",
           turns: [],
           turnsTotal: 0,
+          transcriptStatus: "unavailable",
         }
       : null;
   if (typeof backend.agentTranscript !== "function") return emptyExactClaudeTranscript();
@@ -2879,8 +2883,16 @@ async function listAgentSessionsForRuntime(
           transcriptPath: "",
           turns: [],
           turnsTotal: 0,
+          transcriptStatus: "unavailable",
         };
       }
+
+      if (!transcriptSnapshots.has(backend)) transcriptSnapshots.set(backend, createTranscriptSnapshotCache());
+      const binding = JSON.stringify([pane.pid, pane.cwd, pane.command,
+        String(pane.title || "").replace(/^[\u2800-\u28ff]\s*/, ""),
+        (paneProcesses ? foregroundPaneProcesses(paneProcesses, pane.pid) : [])
+          .map(p => [p.pid, p.command])]);
+      info = transcriptSnapshots.get(backend)(`${mux}:${pane.id}`, binding, info);
 
       const nativeSessionTitle = await resolveAgentSessionTitle(backend, {
         ...info,
@@ -2941,6 +2953,8 @@ async function listAgentSessionsForRuntime(
         agentSessionTitle: nativeSessionTitle?.title || "",
         agentSessionTitleSource: nativeSessionTitle?.source || "",
         transcriptPath: info.transcriptPath || "",
+        transcriptStatus: info.transcriptStatus || "fresh",
+        transcriptObservedAt: info.transcriptObservedAt || null,
         lastUserText: lastUserTurn?.text || "",
         lastUserAt: lastUserTurn?.t || null,
         lastAssistantText: lastAssistantTurn?.text || "",

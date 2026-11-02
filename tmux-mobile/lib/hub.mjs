@@ -722,7 +722,11 @@ export function createHub(
   // no backend handle, so they cannot accidentally turn a cache sweep into a
   // fleet-wide live RPC fanout.
   function listAllCommandCenterInventories() {
-    return [...machines.values()].map(describeCommandCenterInventory);
+    return [...machines.values()].map(machine => {
+      const snapshot = describeCommandCenterInventory(machine);
+      // Display can retain stale data; background actions need fresh evidence.
+      return snapshot.machine.inventoryStatus === "fresh" ? snapshot : { ...snapshot, agents: [] };
+    });
   }
 
   function hasMachine(viewer = "", machineId) {
@@ -816,12 +820,12 @@ function updateInventory(machine, msg) {
   }
   machine.inventory = {
     ok: false,
-    observedAt,
-    receivedAt,
+    observedAt: machine.inventory?.observedAt || observedAt,
+    receivedAt: machine.inventory?.receivedAt || receivedAt,
     durationMs: normalizeNonNegativeNumber(msg.durationMs),
     sequence: normalizeNonNegativeNumber(msg.sequence),
     error: errorMessage(msg.error) || "Inventory scan failed",
-    agents: [],
+    agents: machine.inventory?.agents || [],
   };
 }
 
@@ -852,7 +856,8 @@ function describeInventory(machine, staleMs = INVENTORY_STALE_MS) {
     ageMs,
     durationMs: inventory.durationMs,
     error: inventory.error || "",
-    agents: status === "fresh" && Array.isArray(inventory.agents) ? inventory.agents : [],
+    agents: (Array.isArray(inventory.agents) ? inventory.agents : []).map(agent => status === "fresh"
+      ? agent : { ...agent, transcriptStatus: "stale", status: "unverified", turn: "unverified" }),
   };
 }
 

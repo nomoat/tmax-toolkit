@@ -2049,12 +2049,19 @@ function renderSection({ className, label, text, timestamp, expandedKey, format 
   if (format === "markdown") body.classList.add("is-markdown");
   if (!text) {
     body.classList.add("is-empty");
-    body.textContent = "(nothing yet)";
+    body.textContent = ["unavailable", "stale", "unbound"].includes(agent?.transcriptStatus)
+      ? "Messages temporarily unavailable" : "(nothing yet)";
   } else {
     body.innerHTML = renderSectionContent(text, format);
   }
 
   addMermaidButtons(body);
+  if (["unavailable", "stale"].includes(agent?.transcriptStatus) && label === "Last response") {
+    const note = document.createElement("span");
+    note.className = "cc-section-time";
+    note.textContent = text ? "Update unavailable · Showing last successful read" : "Update unavailable";
+    wrap.append(note);
+  }
   if (agent?.fullTextError && label === "Last response") {
     const note = document.createElement("button");
     note.type = "button";
@@ -3901,13 +3908,13 @@ async function loadMachineAgents(machine, generation, { render = true } = {}) {
   } catch (error) {
     if (error.silent || !viewReads.active || generation !== state.loadGeneration) return;
     const message = error.message || String(error);
+    if ([401, 403, 404].includes(error.status)) replaceAgentsForMachine(key, []);
     if (holdCommandCenterSnapshot([key])) {
       state.machineLoads.set(key, {
         status: "reconnecting",
         error: message,
       });
     } else {
-      replaceAgentsForMachine(key, []);
       state.machineLoads.set(key, {
         status: "error",
         error: message,

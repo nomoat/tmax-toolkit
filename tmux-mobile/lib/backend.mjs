@@ -774,8 +774,10 @@ export const localBackend = {
       );
       turns = parsed.turns;
       turnsTotal = parsed.total;
-    } catch {}
-    return { ...located, turns, turnsTotal };
+    } catch {
+      return { ...located, turns, turnsTotal, transcriptStatus: "unavailable" };
+    }
+    return { ...located, turns, turnsTotal, transcriptStatus: "fresh" };
   },
 };
 

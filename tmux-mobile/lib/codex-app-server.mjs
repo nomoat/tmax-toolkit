@@ -8,6 +8,18 @@ import WebSocket from "ws";
 
 const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
 const cache = new Map();
+export const CODEX_HISTORY_REFRESH_MS = 10_000;
+const MAX_CACHE_BYTES = 32 * 1024 * 1024;
+
+function trimCache() {
+  let bytes = [...cache.values()].reduce((sum, entry) => sum + (entry.bytes || 0), 0);
+  for (const [key, entry] of cache) {
+    if (cache.size <= 128 && bytes <= MAX_CACHE_BYTES) break;
+    if (entry.pending) continue;
+    bytes -= entry.bytes || 0;
+    cache.delete(key);
+  }
+}
 export function selectCodexThread(threads, { cwd, paneTitle }) {
   const title = String(paneTitle || "").replace(/^[\u2800-\u28ff]\s*/, "").trim();
   if (!cwd || !title || /[\u0000-\u001f]/.test(title)) return null;
@@ -90,7 +102,15 @@ export async function readCodexAppServerTranscript({ sessionId = "", cwd = "", p
   const home = process.env.CODEX_HOME?.replace(/^~(?=\/|$)/, os.homedir()) || path.join(os.homedir(), ".codex");
   const key = JSON.stringify([home, sessionId, cwd, paneTitle.replace(/^[\u2800-\u28ff]\s*/, "")]);
   const previous = cache.get(key);
-  if (previous && Date.now() - previous.at < 4000) return previous.result;
+  // A slow read remains single-flight even after the refresh interval expires.
+  // Start the interval when the read settles, not when it starts.
+  if (previous?.pending) return previous.pending;
+  if (previous && Date.now() - previous.at < CODEX_HISTORY_REFRESH_MS) {
+    return previous.value ? { ...previous.value, liveState: "unverified" } : null;
+  }
+  const entry = { ...previous, pending: null };
+  cache.set(key, entry);
+  let resolvedThread;
   const result = (async () => {
     const socketPath = await realpath(path.join(home, "app-server-control", "app-server-control.sock"));
     if (!(await stat(socketPath)).isSocket()) return null;
@@ -109,7 +129,9 @@ export async function readCodexAppServerTranscript({ sessionId = "", cwd = "", p
           } else {
             const threads = []; let cursor;
             for (let page = 0; page < 10; page++) {
-              const list = await client.rpc("thread/list", { cwd, limit: 100, ...(cursor ? { cursor } : {}) });
+              // The default repairs metadata by reading/decompressing historical
+              // rollouts. Background status polling must never request that work.
+              const list = await client.rpc("thread/list", { cwd, limit: 100, useStateDbOnly: true, ...(cursor ? { cursor } : {}) });
               threads.push(...(list.data || []));
               if (!list.nextCursor) break;
               if (page === 9 || list.nextCursor === cursor) return null;
@@ -117,14 +139,30 @@ export async function readCodexAppServerTranscript({ sessionId = "", cwd = "", p
             }
             thread = selectCodexThread(threads, { cwd, paneTitle });
           }
+          resolvedThread = thread || null;
+          if (!thread) return { kind: "codex", sessionId: "", turns: [], turnsTotal: 0, transcriptStatus: "unbound" };
           if (!thread || thread.historyMode !== "paginated") return null;
-          return await readCodexDaemonHistory(client.rpc, thread);
+          return { ...await readCodexDaemonHistory(client.rpc, thread),
+            transcriptStatus: "fresh", transcriptObservedAt: Date.now() };
         })(),
         new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error("Codex history timed out")), 4000); }),
       ]);
     } finally { clearTimeout(timeout); client.close(); }
-  })().catch(() => null);
-  cache.set(key, { at: Date.now(), result });
-  while (cache.size > 16) cache.delete(cache.keys().next().value);
+  })().catch(() => {
+    const prior = previous?.value;
+    if (prior?.sessionId && (resolvedThread === undefined || resolvedThread?.id === prior.sessionId)) {
+      return { ...prior, transcriptStatus: "stale", liveState: "unverified" };
+    }
+    return resolvedThread ? { kind: "codex", sessionId: resolvedThread.id, turns: [], turnsTotal: 0,
+      agentSessionTitle: resolvedThread.name || "", transcriptStatus: "unavailable" } : null;
+  }).then(value => {
+    entry.value = value;
+    entry.bytes = value ? Buffer.byteLength(JSON.stringify(value)) : 0;
+    entry.at = Date.now();
+    entry.pending = null;
+    trimCache();
+    return value;
+  });
+  entry.pending = result;
   return result;
 }

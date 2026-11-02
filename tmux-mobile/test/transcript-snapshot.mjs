@@ -1,0 +1,25 @@
+import assert from "node:assert/strict";
+import { createTranscriptSnapshotCache } from "../lib/transcript-snapshot.mjs";
+
+const apply = createTranscriptSnapshotCache();
+const success = { kind: "codex", sessionId: "A", turns: [{ role: "assistant", text: "Keep this reply" }], turnsTotal: 1 };
+const failure = { kind: "codex", sessionId: "", turns: [], turnsTotal: 0, transcriptStatus: "unavailable" };
+const first = apply("tmux:%1", "process-A", success);
+const failed = apply("tmux:%1", "process-A", failure);
+assert.deepEqual(failed.turns, success.turns);
+assert.equal(failed.transcriptStatus, "stale");
+assert.equal(failed.transcriptObservedAt, first.transcriptObservedAt);
+assert.deepEqual(apply("tmux:%1", "process-A", failure), failed, "repeated errors keep the same snapshot");
+assert.equal(apply("tmux:%1", "process-A", { ...failure, sessionId: "B" }).turns.length, 0, "a confirmed different conversation cannot inherit A");
+apply("tmux:%1", "process-A", success);
+assert.equal(apply("tmux:%1", "process-B", failure).turns.length, 0, "new foreground process cannot inherit A");
+apply("tmux:%1", "process-A", success);
+assert.equal(apply("tmux:%1", "process-A", { ...failure, transcriptStatus: "unbound" }).turns.length, 0);
+assert.equal(apply("tmux:%1", "process-A", failure).turns.length, 0, "confirmed lost binding invalidates the snapshot");
+apply("tmux:%1", "process-A", success);
+assert.equal(apply("tmux:%1", "process-A", { ...success, turns: [] }).turns.length, 0, "successful empty read replaces old content");
+assert.equal(apply("tmux:%1", "process-A", failure).turns.length, 0);
+const bounded = createTranscriptSnapshotCache({ maxEntries: 1 });
+bounded("a", "a", success); bounded("b", "b", success);
+assert.equal(bounded("a", "a", failure).turns.length, 0);
+console.log("Transcript snapshots: failure retention, data age, identity changes, confirmed empty and bounds passed");

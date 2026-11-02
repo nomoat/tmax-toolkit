@@ -42,6 +42,6 @@ function stableRecords(records, { omit = null } = {}) {
 export function commandCenterDataFingerprint({ machines = [], agents = [] } = {}) {
   return JSON.stringify({
     machines: stableRecords(machines, { omit: VOLATILE_MACHINE_FIELDS }),
-    agents: stableRecords(agents),
+    agents: stableRecords(agents, { omit: new Set(["transcriptObservedAt"]) }),
   });
 }
