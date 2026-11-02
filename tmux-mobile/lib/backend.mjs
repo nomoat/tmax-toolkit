@@ -838,9 +838,11 @@ async function loadAgentOpenFilesSnapshot(processes) {
     return agentOpenFilesCache.byPid;
   }
 
+  // We only need local paths. DNS/service lookups for agent sockets can stall
+  // lsof long enough to time out the entire machine's inventory.
   const { error, stdout } = await execFileCaptureAsync(
     "lsof",
-    ["-a", "-p", candidates.map(({ pid }) => pid).join(","), "-Fpn"],
+    ["-n", "-P", "-a", "-p", candidates.map(({ pid }) => pid).join(","), "-Fpn"],
     { timeout: 5000, maxBuffer: 32 * 1024 * 1024 },
   );
   // lsof exits 1 when a requested pid disappears (or no selected files
@@ -1017,7 +1019,7 @@ async function findOpenTranscriptPath(pids, kind) {
   if (ids.length === 0) return "";
   let out = "";
   try {
-    out = await execFileAsync("lsof", ["-p", ids.join(",")], {
+    out = await execFileAsync("lsof", ["-n", "-P", "-p", ids.join(",")], {
       timeout: 4000,
       maxBuffer: 32 * 1024 * 1024,
     });

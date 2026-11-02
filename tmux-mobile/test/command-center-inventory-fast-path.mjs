@@ -58,6 +58,9 @@ process.stdout.write([
   await writeExecutable(
     path.join(binDir, "lsof"),
     `${recordPrelude}
+if (process.env.FAKE_INVENTORY_MODE === "open-files-fallback" && args.includes("-Fpn")) {
+  process.exit(2);
+}
 process.stdout.write("p100\\np200\\n");
 `,
   );
@@ -266,10 +269,10 @@ async function runInventory(mode) {
     matching(
       calls,
       "lsof",
-      (args) => args.join(" ") === "-a -p 100,200 -Fpn",
+      (args) => args.join(" ") === "-n -P -a -p 100,200 -Fpn",
     ).length,
     1,
-    "the open-files snapshot covers every agent pid in one lsof call",
+    "the open-files snapshot covers every agent pid without DNS or service lookups",
   );
   assert.equal(
     matching(
@@ -297,6 +300,20 @@ async function runInventory(mode) {
     ).length,
     0,
     "complete bulk surface output avoids per-window scans",
+  );
+}
+
+{
+  const { calls } = await runInventory("open-files-fallback");
+  const lookups = matching(calls, "lsof");
+  assert.equal(lookups.filter(({ args }) => args.includes("-Fpn")).length, 1);
+  assert.ok(
+    lookups.some(({ args }) => !args.includes("-Fpn")),
+    "a failed bulk open-files snapshot falls back to per-agent transcript lookup",
+  );
+  assert.ok(
+    lookups.every(({ args }) => args.includes("-n") && args.includes("-P")),
+    "fallback transcript discovery must also avoid DNS and service lookups",
   );
 }
 
