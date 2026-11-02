@@ -8,6 +8,12 @@ This monorepo contains three independently runnable components:
 - `tmux-jump/`: Rust terminal session/window picker. The tmux binary lives in
   `src/bin/tmux-jump.rs`; the separate RMUX binary lives in `src/main.rs`.
 
+This repository is the active development source for all three components.
+Legacy standalone checkouts may be kept in a workspace-level `backup/`
+directory for recovery. Do not edit or build from those archives, and do not
+link dependencies or runtime files into them. Keep each component's development
+dependencies inside this repository. `CLAUDE.md` links to these instructions.
+
 Keep sibling paths stable: mobile parity scripts and the picker activity reader
 reuse the Web component's code. Preserve third-party notices and the Blink
 submodule revision. Do not edit generated copies of shared frontend modules.
