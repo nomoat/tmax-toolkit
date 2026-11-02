@@ -1,0 +1,33 @@
+{
+  "imported": "2026-11-02",
+  "method": "Current source snapshots; existing repositories and their history retained separately.",
+  "components": [
+    {
+      "component": "tmux-mobile",
+      "repository": "https://github.com/cjzeroxaa/tmux-mobile.git",
+      "commit": "f2cd1fb847319dee98ec442648c9dcfa20d7d15a",
+      "branch": "web-mobile-parity",
+      "working_tree_changes": []
+    },
+    {
+      "component": "tmux-mobile-mobile",
+      "repository": "https://github.com/zeroxaa/tmux-mobile-mobile.git",
+      "commit": "d729f6ff6833d07c03703d82b65a0e97e09c9dee",
+      "branch": "agent/version-ios-release-source",
+      "working_tree_changes": []
+    },
+    {
+      "component": "tmux-jump",
+      "repository": "https://github.com/zeroxaa/tmux-jump.git",
+      "commit": "f49b8aa89a9beb11114b58b27460ea93f8cd2ac5",
+      "branch": "codex/rmux-sdk-port",
+      "working_tree_changes": [
+        "Cargo.lock",
+        "Cargo.toml",
+        "README.md",
+        "src/bin/tmux-jump.rs",
+        "src/main.rs"
+      ]
+    }
+  ]
+}

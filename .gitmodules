@@ -1,0 +1,4 @@
+[submodule "tmux-mobile-mobile/vendor/blink"]
+	path = tmux-mobile-mobile/vendor/blink
+	url = https://github.com/blinksh/blink.git
+	branch = v18.6.0

@@ -1,0 +1,11 @@
+Blink Mobile Shell
+Source: https://github.com/blinksh/blink
+Branch: v18.6.0
+Commit: c1b07ea97ac94f2ada190f7d6554f81502774a77
+
+CJMUX embeds the Blink hterm renderer resources and links the SSH and
+BlinkFiles frameworks built from the commit above. The corresponding source
+is included as the vendor/blink git submodule.
+
+The bundled OpenSSL framework was built from openssl-apple v1.1.1w at
+693aecf8a418ffb6398d9b49f55537a78d87505d with a minimum iOS version of 16.4.

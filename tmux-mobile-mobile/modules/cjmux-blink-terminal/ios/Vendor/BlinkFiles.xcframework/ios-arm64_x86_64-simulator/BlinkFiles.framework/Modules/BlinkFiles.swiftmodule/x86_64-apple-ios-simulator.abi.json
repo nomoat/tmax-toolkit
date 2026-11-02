@@ -1,0 +1,4246 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "BlinkFiles",
+    "printedName": "BlinkFiles",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles"
+      },
+      {
+        "kind": "Import",
+        "name": "Dispatch",
+        "printedName": "Dispatch",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopyError",
+        "printedName": "CopyError",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "msg",
+            "printedName": "msg",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles9CopyErrorV3msgSSvp",
+            "mangledName": "$s10BlinkFiles9CopyErrorV3msgSSvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles9CopyErrorV3msgSSvg",
+                "mangledName": "$s10BlinkFiles9CopyErrorV3msgSSvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles9CopyErrorV",
+        "mangledName": "$s10BlinkFiles9CopyErrorV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopyAttributesFlag",
+        "printedName": "CopyAttributesFlag",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "rawValue",
+            "printedName": "rawValue",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt",
+                "printedName": "Swift.UInt",
+                "usr": "s:Su"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles18CopyAttributesFlagV8rawValueSuvp",
+            "mangledName": "$s10BlinkFiles18CopyAttributesFlagV8rawValueSuvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt",
+                    "printedName": "Swift.UInt",
+                    "usr": "s:Su"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV8rawValueSuvg",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV8rawValueSuvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt",
+                    "printedName": "Swift.UInt",
+                    "usr": "s:Su"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV8rawValueSuvs",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV8rawValueSuvs",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV8rawValueSuvM",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV8rawValueSuvM",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "none",
+            "printedName": "none",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles18CopyAttributesFlagV4noneACvpZ",
+            "mangledName": "$s10BlinkFiles18CopyAttributesFlagV4noneACvpZ",
+            "moduleName": "BlinkFiles",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV4noneACvgZ",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV4noneACvgZ",
+                "moduleName": "BlinkFiles",
+                "static": true,
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "timestamp",
+            "printedName": "timestamp",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles18CopyAttributesFlagV9timestampACvpZ",
+            "mangledName": "$s10BlinkFiles18CopyAttributesFlagV9timestampACvpZ",
+            "moduleName": "BlinkFiles",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV9timestampACvgZ",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV9timestampACvgZ",
+                "moduleName": "BlinkFiles",
+                "static": true,
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "permissions",
+            "printedName": "permissions",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles18CopyAttributesFlagV11permissionsACvpZ",
+            "mangledName": "$s10BlinkFiles18CopyAttributesFlagV11permissionsACvpZ",
+            "moduleName": "BlinkFiles",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV11permissionsACvgZ",
+                "mangledName": "$s10BlinkFiles18CopyAttributesFlagV11permissionsACvgZ",
+                "moduleName": "BlinkFiles",
+                "static": true,
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(rawValue:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt",
+                "printedName": "Swift.UInt",
+                "usr": "s:Su"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:10BlinkFiles18CopyAttributesFlagV8rawValueACSu_tcfc",
+            "mangledName": "$s10BlinkFiles18CopyAttributesFlagV8rawValueACSu_tcfc",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles18CopyAttributesFlagV",
+        "mangledName": "$s10BlinkFiles18CopyAttributesFlagV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "OptionSet",
+            "printedName": "OptionSet",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Element",
+                "printedName": "Element",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s9OptionSetP",
+            "mangledName": "$ss9OptionSetP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt",
+                    "printedName": "Swift.UInt",
+                    "usr": "s:Su"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SetAlgebra",
+            "printedName": "SetAlgebra",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Element",
+                "printedName": "Element",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s10SetAlgebraP",
+            "mangledName": "$ss10SetAlgebraP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "ExpressibleByArrayLiteral",
+            "printedName": "ExpressibleByArrayLiteral",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "ArrayLiteralElement",
+                "printedName": "ArrayLiteralElement",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s25ExpressibleByArrayLiteralP",
+            "mangledName": "$ss25ExpressibleByArrayLiteralP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopyArguments",
+        "printedName": "CopyArguments",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "inplace",
+            "printedName": "inplace",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles13CopyArgumentsV7inplaceSbvp",
+            "mangledName": "$s10BlinkFiles13CopyArgumentsV7inplaceSbvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles13CopyArgumentsV7inplaceSbvg",
+                "mangledName": "$s10BlinkFiles13CopyArgumentsV7inplaceSbvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "preserve",
+            "printedName": "preserve",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvp",
+            "mangledName": "$s10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvg",
+                "mangledName": "$s10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyAttributesFlag",
+                    "printedName": "BlinkFiles.CopyAttributesFlag",
+                    "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvs",
+                "mangledName": "$s10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvs",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvM",
+                "mangledName": "$s10BlinkFiles13CopyArgumentsV8preserveAA0C14AttributesFlagVvM",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "checkTimes",
+            "printedName": "checkTimes",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles13CopyArgumentsV10checkTimesSbvp",
+            "mangledName": "$s10BlinkFiles13CopyArgumentsV10checkTimesSbvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles13CopyArgumentsV10checkTimesSbvg",
+                "mangledName": "$s10BlinkFiles13CopyArgumentsV10checkTimesSbvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(inplace:preserve:checkTimes:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyArguments",
+                "printedName": "BlinkFiles.CopyArguments",
+                "usr": "s:10BlinkFiles13CopyArgumentsV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "CopyAttributesFlag",
+                "printedName": "BlinkFiles.CopyAttributesFlag",
+                "hasDefaultArg": true,
+                "usr": "s:10BlinkFiles18CopyAttributesFlagV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:10BlinkFiles13CopyArgumentsV7inplace8preserve10checkTimesACSb_AA0C14AttributesFlagVSbtcfc",
+            "mangledName": "$s10BlinkFiles13CopyArgumentsV7inplace8preserve10checkTimesACSb_AA0C14AttributesFlagVSbtcfc",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles13CopyArgumentsV",
+        "mangledName": "$s10BlinkFiles13CopyArgumentsV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "BlinkFilesError",
+        "printedName": "BlinkFilesError",
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles0aB5ErrorV",
+        "mangledName": "$s10BlinkFiles0aB5ErrorV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "LocalizedError",
+            "printedName": "LocalizedError",
+            "usr": "s:10Foundation14LocalizedErrorP",
+            "mangledName": "$s10Foundation14LocalizedErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "LocalFileError",
+        "printedName": "LocalFileError",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "msg",
+            "printedName": "msg",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles14LocalFileErrorV3msgSSvp",
+            "mangledName": "$s10BlinkFiles14LocalFileErrorV3msgSSvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles14LocalFileErrorV3msgSSvg",
+                "mangledName": "$s10BlinkFiles14LocalFileErrorV3msgSSvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "description",
+            "printedName": "description",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles14LocalFileErrorV11descriptionSSvp",
+            "mangledName": "$s10BlinkFiles14LocalFileErrorV11descriptionSSvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles14LocalFileErrorV11descriptionSSvg",
+                "mangledName": "$s10BlinkFiles14LocalFileErrorV11descriptionSSvg",
+                "moduleName": "BlinkFiles",
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles14LocalFileErrorV",
+        "mangledName": "$s10BlinkFiles14LocalFileErrorV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Error",
+            "printedName": "Error",
+            "usr": "s:s5ErrorP",
+            "mangledName": "$ss5ErrorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Local",
+        "printedName": "Local",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "isDirectory",
+            "printedName": "isDirectory",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles5LocalC11isDirectorySbvp",
+            "mangledName": "$s10BlinkFiles5LocalC11isDirectorySbvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles5LocalC11isDirectorySbvg",
+                "mangledName": "$s10BlinkFiles5LocalC11isDirectorySbvg",
+                "moduleName": "BlinkFiles",
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isConnected",
+            "printedName": "isConnected",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles5LocalC11isConnectedSbvp",
+            "mangledName": "$s10BlinkFiles5LocalC11isConnectedSbvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles5LocalC11isConnectedSbvg",
+                "mangledName": "$s10BlinkFiles5LocalC11isConnectedSbvg",
+                "moduleName": "BlinkFiles",
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "fileType",
+            "printedName": "fileType",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FileAttributeType",
+                "printedName": "Foundation.FileAttributeType",
+                "usr": "c:@T@NSFileAttributeType"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles5LocalC8fileTypeSo015NSFileAttributeE0avp",
+            "mangledName": "$s10BlinkFiles5LocalC8fileTypeSo015NSFileAttributeE0avp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage",
+              "SetterAccess",
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeType",
+                    "printedName": "Foundation.FileAttributeType",
+                    "usr": "c:@T@NSFileAttributeType"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles5LocalC8fileTypeSo015NSFileAttributeE0avg",
+                "mangledName": "$s10BlinkFiles5LocalC8fileTypeSo015NSFileAttributeE0avg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "current",
+            "printedName": "current",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles5LocalC7currentSSvp",
+            "mangledName": "$s10BlinkFiles5LocalC7currentSSvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "SetterAccess",
+              "AccessControl"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles5LocalC7currentSSvg",
+                "mangledName": "$s10BlinkFiles5LocalC7currentSSvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Local",
+                "printedName": "BlinkFiles.Local",
+                "usr": "s:10BlinkFiles5LocalC"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:10BlinkFiles5LocalCACycfc",
+            "mangledName": "$s10BlinkFiles5LocalCACycfc",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          },
+          {
+            "kind": "Function",
+            "name": "clone",
+            "printedName": "clone()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC5cloneAA10Translator_pyF",
+            "mangledName": "$s10BlinkFiles5LocalC5cloneAA10Translator_pyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "walkTo",
+            "printedName": "walkTo(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC6walkToy7Combine12AnyPublisherVyAA10Translator_ps5Error_pGSSF",
+            "mangledName": "$s10BlinkFiles5LocalC6walkToy7Combine12AnyPublisherVyAA10Translator_ps5Error_pGSSF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "join",
+            "printedName": "join(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC4joinyAA10Translator_pSSKF",
+            "mangledName": "$s10BlinkFiles5LocalC4joinyAA10Translator_pSSKF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "throwing": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "directoryFilesAndAttributes",
+            "printedName": "directoryFilesAndAttributes()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[[Foundation.FileAttributeKey : Any]], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[[Foundation.FileAttributeKey : Any]]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Foundation.FileAttributeKey : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "FileAttributeKey",
+                            "printedName": "Foundation.FileAttributeKey",
+                            "usr": "c:@T@NSFileAttributeKey"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC09directoryB13AndAttributes7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles5LocalC09directoryB13AndAttributes7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "create",
+            "printedName": "create(name:mode:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "File",
+                    "printedName": "any BlinkFiles.File",
+                    "usr": "s:10BlinkFiles4FileP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt16",
+                "printedName": "Swift.UInt16",
+                "hasDefaultArg": true,
+                "usr": "s:s6UInt16V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC6create4name4mode7Combine12AnyPublisherVyAA4File_ps5Error_pGSS_s6UInt16VtF",
+            "mangledName": "$s10BlinkFiles5LocalC6create4name4mode7Combine12AnyPublisherVyAA4File_ps5Error_pGSS_s6UInt16VtF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "mkdir",
+            "printedName": "mkdir(name:mode:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt16",
+                "printedName": "Swift.UInt16",
+                "hasDefaultArg": true,
+                "usr": "s:s6UInt16V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC5mkdir4name4mode7Combine12AnyPublisherVyAA10Translator_ps5Error_pGSS_s6UInt16VtF",
+            "mangledName": "$s10BlinkFiles5LocalC5mkdir4name4mode7Combine12AnyPublisherVyAA10Translator_ps5Error_pGSS_s6UInt16VtF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "open",
+            "printedName": "open(flags:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "File",
+                    "printedName": "any BlinkFiles.File",
+                    "usr": "s:10BlinkFiles4FileP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int32",
+                "printedName": "Swift.Int32",
+                "usr": "s:s5Int32V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC4open5flags7Combine12AnyPublisherVyAA4File_ps5Error_pGs5Int32V_tF",
+            "mangledName": "$s10BlinkFiles5LocalC4open5flags7Combine12AnyPublisherVyAA4File_ps5Error_pGs5Int32V_tF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "remove",
+            "printedName": "remove()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC6remove7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles5LocalC6remove7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "rmdir",
+            "printedName": "rmdir()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC5rmdir7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles5LocalC5rmdir7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "stat",
+            "printedName": "stat()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[Foundation.FileAttributeKey : Any], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Foundation.FileAttributeKey : Any]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FileAttributeKey",
+                        "printedName": "Foundation.FileAttributeKey",
+                        "usr": "c:@T@NSFileAttributeKey"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "ProtocolComposition",
+                        "printedName": "Any"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC4stat7Combine12AnyPublisherVySDySo18NSFileAttributeKeyaypGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles5LocalC4stat7Combine12AnyPublisherVySDySo18NSFileAttributeKeyaypGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "wstat",
+            "printedName": "wstat(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Dictionary",
+                "printedName": "[Foundation.FileAttributeKey : Any]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeKey",
+                    "printedName": "Foundation.FileAttributeKey",
+                    "usr": "c:@T@NSFileAttributeKey"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ProtocolComposition",
+                    "printedName": "Any"
+                  }
+                ],
+                "usr": "s:SD"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles5LocalC5wstaty7Combine12AnyPublisherVySbs5Error_pGSDySo18NSFileAttributeKeyaypGF",
+            "mangledName": "$s10BlinkFiles5LocalC5wstaty7Combine12AnyPublisherVySbs5Error_pGSDySo18NSFileAttributeKeyaypGF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "s:10BlinkFiles5LocalC",
+        "mangledName": "$s10BlinkFiles5LocalC",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Translator",
+            "printedName": "Translator",
+            "usr": "s:10BlinkFiles10TranslatorP",
+            "mangledName": "$s10BlinkFiles10TranslatorP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CopierFrom",
+            "printedName": "CopierFrom",
+            "usr": "s:10BlinkFiles10CopierFromP",
+            "mangledName": "$s10BlinkFiles10CopierFromP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "LocalFile",
+        "printedName": "LocalFile",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "close",
+            "printedName": "close()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles9LocalFileC5close7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles9LocalFileC5close7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "read",
+            "printedName": "read(max:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DispatchData",
+                    "printedName": "Dispatch.DispatchData",
+                    "usr": "s:8Dispatch0A4DataV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles9LocalFileC4read3max7Combine12AnyPublisherVy8Dispatch0J4DataVs5Error_pGSi_tF",
+            "mangledName": "$s10BlinkFiles9LocalFileC4read3max7Combine12AnyPublisherVy8Dispatch0J4DataVs5Error_pGSi_tF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl",
+              "RawDocComment"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "writeTo",
+            "printedName": "writeTo(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Int, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Writer",
+                "printedName": "any BlinkFiles.Writer",
+                "usr": "s:10BlinkFiles6WriterP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles9LocalFileC7writeToy7Combine12AnyPublisherVySis5Error_pGAA6Writer_pF",
+            "mangledName": "$s10BlinkFiles9LocalFileC7writeToy7Combine12AnyPublisherVySis5Error_pGAA6Writer_pF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "write",
+            "printedName": "write(_:max:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Int, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DispatchData",
+                "printedName": "Dispatch.DispatchData",
+                "usr": "s:8Dispatch0A4DataV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles9LocalFileC5write_3max7Combine12AnyPublisherVySis5Error_pG8Dispatch0K4DataV_SitF",
+            "mangledName": "$s10BlinkFiles9LocalFileC5write_3max7Combine12AnyPublisherVySis5Error_pG8Dispatch0K4DataV_SitF",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "s:10BlinkFiles9LocalFileC",
+        "mangledName": "$s10BlinkFiles9LocalFileC",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "hasMissingDesignatedInitializers": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Writer",
+            "printedName": "Writer",
+            "usr": "s:10BlinkFiles6WriterP",
+            "mangledName": "$s10BlinkFiles6WriterP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Reader",
+            "printedName": "Reader",
+            "usr": "s:10BlinkFiles6ReaderP",
+            "mangledName": "$s10BlinkFiles6ReaderP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "WriterTo",
+            "printedName": "WriterTo",
+            "usr": "s:10BlinkFiles8WriterToP",
+            "mangledName": "$s10BlinkFiles8WriterToP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "File",
+            "printedName": "File",
+            "usr": "s:10BlinkFiles4FileP",
+            "mangledName": "$s10BlinkFiles4FileP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "Combine",
+        "printedName": "Combine",
+        "declKind": "Import",
+        "moduleName": "BlinkFiles"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Translator",
+        "printedName": "Translator",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "fileType",
+            "printedName": "fileType",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FileAttributeType",
+                "printedName": "Foundation.FileAttributeType",
+                "usr": "c:@T@NSFileAttributeType"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles10TranslatorP8fileTypeSo015NSFileAttributeE0avp",
+            "mangledName": "$s10BlinkFiles10TranslatorP8fileTypeSo015NSFileAttributeE0avp",
+            "moduleName": "BlinkFiles",
+            "protocolReq": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeType",
+                    "printedName": "Foundation.FileAttributeType",
+                    "usr": "c:@T@NSFileAttributeType"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles10TranslatorP8fileTypeSo015NSFileAttributeE0avg",
+                "mangledName": "$s10BlinkFiles10TranslatorP8fileTypeSo015NSFileAttributeE0avg",
+                "moduleName": "BlinkFiles",
+                "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+                "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isDirectory",
+            "printedName": "isDirectory",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles10TranslatorP11isDirectorySbvp",
+            "mangledName": "$s10BlinkFiles10TranslatorP11isDirectorySbvp",
+            "moduleName": "BlinkFiles",
+            "protocolReq": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles10TranslatorP11isDirectorySbvg",
+                "mangledName": "$s10BlinkFiles10TranslatorP11isDirectorySbvg",
+                "moduleName": "BlinkFiles",
+                "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+                "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "current",
+            "printedName": "current",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles10TranslatorP7currentSSvp",
+            "mangledName": "$s10BlinkFiles10TranslatorP7currentSSvp",
+            "moduleName": "BlinkFiles",
+            "protocolReq": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles10TranslatorP7currentSSvg",
+                "mangledName": "$s10BlinkFiles10TranslatorP7currentSSvg",
+                "moduleName": "BlinkFiles",
+                "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+                "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "isConnected",
+            "printedName": "isConnected",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles10TranslatorP11isConnectedSbvp",
+            "mangledName": "$s10BlinkFiles10TranslatorP11isConnectedSbvp",
+            "moduleName": "BlinkFiles",
+            "protocolReq": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles10TranslatorP11isConnectedSbvg",
+                "mangledName": "$s10BlinkFiles10TranslatorP11isConnectedSbvg",
+                "moduleName": "BlinkFiles",
+                "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+                "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+                "protocolReq": true,
+                "reqNewWitnessTableEntry": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "clone",
+            "printedName": "clone()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP5cloneAaB_pyF",
+            "mangledName": "$s10BlinkFiles10TranslatorP5cloneAaB_pyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "walkTo",
+            "printedName": "walkTo(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP6walkToy7Combine12AnyPublisherVyAaB_ps5Error_pGSSF",
+            "mangledName": "$s10BlinkFiles10TranslatorP6walkToy7Combine12AnyPublisherVyAaB_ps5Error_pGSSF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "join",
+            "printedName": "join(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP4joinyAaB_pSSKF",
+            "mangledName": "$s10BlinkFiles10TranslatorP4joinyAaB_pSSKF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "throwing": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "directoryFilesAndAttributes",
+            "printedName": "directoryFilesAndAttributes()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[[Foundation.FileAttributeKey : Any]], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[[Foundation.FileAttributeKey : Any]]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Foundation.FileAttributeKey : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "FileAttributeKey",
+                            "printedName": "Foundation.FileAttributeKey",
+                            "usr": "c:@T@NSFileAttributeKey"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP09directoryB13AndAttributes7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorP09directoryB13AndAttributes7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "create",
+            "printedName": "create(name:mode:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "File",
+                    "printedName": "any BlinkFiles.File",
+                    "usr": "s:10BlinkFiles4FileP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt16",
+                "printedName": "Swift.UInt16",
+                "usr": "s:s6UInt16V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP6create4name4mode7Combine12AnyPublisherVyAA4File_ps5Error_pGSS_s6UInt16VtF",
+            "mangledName": "$s10BlinkFiles10TranslatorP6create4name4mode7Combine12AnyPublisherVyAA4File_ps5Error_pGSS_s6UInt16VtF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "mkdir",
+            "printedName": "mkdir(name:mode:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt16",
+                "printedName": "Swift.UInt16",
+                "usr": "s:s6UInt16V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP5mkdir4name4mode7Combine12AnyPublisherVyAaB_ps5Error_pGSS_s6UInt16VtF",
+            "mangledName": "$s10BlinkFiles10TranslatorP5mkdir4name4mode7Combine12AnyPublisherVyAaB_ps5Error_pGSS_s6UInt16VtF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "open",
+            "printedName": "open(flags:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "File",
+                    "printedName": "any BlinkFiles.File",
+                    "usr": "s:10BlinkFiles4FileP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int32",
+                "printedName": "Swift.Int32",
+                "usr": "s:s5Int32V"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP4open5flags7Combine12AnyPublisherVyAA4File_ps5Error_pGs5Int32V_tF",
+            "mangledName": "$s10BlinkFiles10TranslatorP4open5flags7Combine12AnyPublisherVyAA4File_ps5Error_pGs5Int32V_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "remove",
+            "printedName": "remove()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP6remove7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorP6remove7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "rmdir",
+            "printedName": "rmdir()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP5rmdir7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorP5rmdir7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "stat",
+            "printedName": "stat()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[Foundation.FileAttributeKey : Any], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dictionary",
+                    "printedName": "[Foundation.FileAttributeKey : Any]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "FileAttributeKey",
+                        "printedName": "Foundation.FileAttributeKey",
+                        "usr": "c:@T@NSFileAttributeKey"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "ProtocolComposition",
+                        "printedName": "Any"
+                      }
+                    ],
+                    "usr": "s:SD"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP4stat7Combine12AnyPublisherVySDySo18NSFileAttributeKeyaypGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorP4stat7Combine12AnyPublisherVySDySo18NSFileAttributeKeyaypGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "wstat",
+            "printedName": "wstat(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Dictionary",
+                "printedName": "[Foundation.FileAttributeKey : Any]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeKey",
+                    "printedName": "Foundation.FileAttributeKey",
+                    "usr": "c:@T@NSFileAttributeKey"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "ProtocolComposition",
+                    "printedName": "Any"
+                  }
+                ],
+                "usr": "s:SD"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorP5wstaty7Combine12AnyPublisherVySbs5Error_pGSDySo18NSFileAttributeKeyaypGF",
+            "mangledName": "$s10BlinkFiles10TranslatorP5wstaty7Combine12AnyPublisherVySbs5Error_pGSDySo18NSFileAttributeKeyaypGF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "copy",
+            "printedName": "copy(from:args:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<BlinkFiles.CopyProgressInfo, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyProgressInfo",
+                    "printedName": "BlinkFiles.CopyProgressInfo",
+                    "usr": "s:10BlinkFiles16CopyProgressInfoV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[any BlinkFiles.Translator]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "CopyArguments",
+                "printedName": "BlinkFiles.CopyArguments",
+                "hasDefaultArg": true,
+                "usr": "s:10BlinkFiles13CopyArgumentsV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE4copy4from4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGSayAaB_pG_AA0J9ArgumentsVtF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE4copy4from4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGSayAaB_pG_AA0J9ArgumentsVtF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "copy",
+            "printedName": "copy(from:newName:args:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<BlinkFiles.CopyProgressInfo, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyProgressInfo",
+                    "printedName": "BlinkFiles.CopyProgressInfo",
+                    "usr": "s:10BlinkFiles16CopyProgressInfoV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "CopyArguments",
+                "printedName": "BlinkFiles.CopyArguments",
+                "hasDefaultArg": true,
+                "usr": "s:10BlinkFiles13CopyArgumentsV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE4copy4from7newName4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGAaB_p_SSAA0L9ArgumentsVtF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE4copy4from7newName4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGAaB_p_SSAA0L9ArgumentsVtF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "cloneWalkTo",
+            "printedName": "cloneWalkTo(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE11cloneWalkToy7Combine12AnyPublisherVyAaB_ps5Error_pGSSF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE11cloneWalkToy7Combine12AnyPublisherVyAaB_ps5Error_pGSSF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "translatorsMatching",
+            "printedName": "translatorsMatching(path:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE19translatorsMatching4path7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE19translatorsMatching4path7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "directoryFilesAndAttributesResolvingLinks",
+            "printedName": "directoryFilesAndAttributesResolvingLinks()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[[Foundation.FileAttributeKey : Any]], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[[Foundation.FileAttributeKey : Any]]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Foundation.FileAttributeKey : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "FileAttributeKey",
+                            "printedName": "Foundation.FileAttributeKey",
+                            "usr": "c:@T@NSFileAttributeKey"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE09directoryB27AndAttributesResolvingLinks7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE09directoryB27AndAttributesResolvingLinks7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "directoryFilesAndAttributesWithTargetLinks",
+            "printedName": "directoryFilesAndAttributesWithTargetLinks()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<[[Foundation.FileAttributeKey : Any]], any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[[Foundation.FileAttributeKey : Any]]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Dictionary",
+                        "printedName": "[Foundation.FileAttributeKey : Any]",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "FileAttributeKey",
+                            "printedName": "Foundation.FileAttributeKey",
+                            "usr": "c:@T@NSFileAttributeKey"
+                          },
+                          {
+                            "kind": "TypeNominal",
+                            "name": "ProtocolComposition",
+                            "printedName": "Any"
+                          }
+                        ],
+                        "usr": "s:SD"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE09directoryB28AndAttributesWithTargetLinks7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE09directoryB28AndAttributesWithTargetLinks7Combine12AnyPublisherVySaySDySo18NSFileAttributeKeyaypGGs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "mkdir",
+            "printedName": "mkdir(name:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE5mkdir4name7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE5mkdir4name7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "mkPath",
+            "printedName": "mkPath(path:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10TranslatorPAAE6mkPath4path7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "mangledName": "$s10BlinkFiles10TranslatorPAAE6mkPath4path7Combine12AnyPublisherVyAaB_ps5Error_pGSS_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Translator>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Translator>",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles10TranslatorP",
+        "mangledName": "$s10BlinkFiles10TranslatorP",
+        "moduleName": "BlinkFiles",
+        "genericSig": "<τ_0_0 : BlinkFiles.CopierFrom>",
+        "sugared_genericSig": "<Self : BlinkFiles.CopierFrom>",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CopierFrom",
+            "printedName": "CopierFrom",
+            "usr": "s:10BlinkFiles10CopierFromP",
+            "mangledName": "$s10BlinkFiles10CopierFromP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Reader",
+        "printedName": "Reader",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "read",
+            "printedName": "read(max:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "DispatchData",
+                    "printedName": "Dispatch.DispatchData",
+                    "usr": "s:8Dispatch0A4DataV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles6ReaderP4read3max7Combine12AnyPublisherVy8Dispatch0I4DataVs5Error_pGSi_tF",
+            "mangledName": "$s10BlinkFiles6ReaderP4read3max7Combine12AnyPublisherVy8Dispatch0I4DataVs5Error_pGSi_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Reader>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Reader>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles6ReaderP",
+        "mangledName": "$s10BlinkFiles6ReaderP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Writer",
+        "printedName": "Writer",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "write",
+            "printedName": "write(_:max:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Int, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "DispatchData",
+                "printedName": "Dispatch.DispatchData",
+                "usr": "s:8Dispatch0A4DataV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles6WriterP5write_3max7Combine12AnyPublisherVySis5Error_pG8Dispatch0J4DataV_SitF",
+            "mangledName": "$s10BlinkFiles6WriterP5write_3max7Combine12AnyPublisherVySis5Error_pG8Dispatch0J4DataV_SitF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.Writer>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.Writer>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles6WriterP",
+        "mangledName": "$s10BlinkFiles6WriterP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "WriterTo",
+        "printedName": "WriterTo",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "writeTo",
+            "printedName": "writeTo(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Int, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Writer",
+                "printedName": "any BlinkFiles.Writer",
+                "usr": "s:10BlinkFiles6WriterP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles8WriterToP05writeD0y7Combine12AnyPublisherVySis5Error_pGAA0C0_pF",
+            "mangledName": "$s10BlinkFiles8WriterToP05writeD0y7Combine12AnyPublisherVySis5Error_pGAA0C0_pF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.WriterTo>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.WriterTo>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles8WriterToP",
+        "mangledName": "$s10BlinkFiles8WriterToP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "ReaderFrom",
+        "printedName": "ReaderFrom",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "readFrom",
+            "printedName": "readFrom(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Int, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Reader",
+                "printedName": "any BlinkFiles.Reader",
+                "usr": "s:10BlinkFiles6ReaderP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10ReaderFromP04readD0y7Combine12AnyPublisherVySis5Error_pGAA0C0_pF",
+            "mangledName": "$s10BlinkFiles10ReaderFromP04readD0y7Combine12AnyPublisherVySis5Error_pGAA0C0_pF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.ReaderFrom>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.ReaderFrom>",
+            "protocolReq": true,
+            "declAttributes": [
+              "RawDocComment"
+            ],
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles10ReaderFromP",
+        "mangledName": "$s10BlinkFiles10ReaderFromP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "File",
+        "printedName": "File",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "close",
+            "printedName": "close()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<Swift.Bool, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Bool",
+                    "printedName": "Swift.Bool",
+                    "usr": "s:Sb"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles4FileP5close7Combine12AnyPublisherVySbs5Error_pGyF",
+            "mangledName": "$s10BlinkFiles4FileP5close7Combine12AnyPublisherVySbs5Error_pGyF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.File>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.File>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles4FileP",
+        "mangledName": "$s10BlinkFiles4FileP",
+        "moduleName": "BlinkFiles",
+        "genericSig": "<τ_0_0 : BlinkFiles.Reader, τ_0_0 : BlinkFiles.Writer>",
+        "sugared_genericSig": "<Self : BlinkFiles.Reader, Self : BlinkFiles.Writer>",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Writer",
+            "printedName": "Writer",
+            "usr": "s:10BlinkFiles6WriterP",
+            "mangledName": "$s10BlinkFiles6WriterP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Reader",
+            "printedName": "Reader",
+            "usr": "s:10BlinkFiles6ReaderP",
+            "mangledName": "$s10BlinkFiles6ReaderP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopyProgressInfo",
+        "printedName": "CopyProgressInfo",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "name",
+            "printedName": "name",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles16CopyProgressInfoV4nameSSvp",
+            "mangledName": "$s10BlinkFiles16CopyProgressInfoV4nameSSvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles16CopyProgressInfoV4nameSSvg",
+                "mangledName": "$s10BlinkFiles16CopyProgressInfoV4nameSSvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "written",
+            "printedName": "written",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt64",
+                "printedName": "Swift.UInt64",
+                "usr": "s:s6UInt64V"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles16CopyProgressInfoV7writtens6UInt64Vvp",
+            "mangledName": "$s10BlinkFiles16CopyProgressInfoV7writtens6UInt64Vvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt64",
+                    "printedName": "Swift.UInt64",
+                    "usr": "s:s6UInt64V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles16CopyProgressInfoV7writtens6UInt64Vvg",
+                "mangledName": "$s10BlinkFiles16CopyProgressInfoV7writtens6UInt64Vvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "size",
+            "printedName": "size",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "UInt64",
+                "printedName": "Swift.UInt64",
+                "usr": "s:s6UInt64V"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:10BlinkFiles16CopyProgressInfoV4sizes6UInt64Vvp",
+            "mangledName": "$s10BlinkFiles16CopyProgressInfoV4sizes6UInt64Vvp",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "HasStorage",
+              "AccessControl"
+            ],
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UInt64",
+                    "printedName": "Swift.UInt64",
+                    "usr": "s:s6UInt64V"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:10BlinkFiles16CopyProgressInfoV4sizes6UInt64Vvg",
+                "mangledName": "$s10BlinkFiles16CopyProgressInfoV4sizes6UInt64Vvg",
+                "moduleName": "BlinkFiles",
+                "implicit": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Constructor",
+            "name": "init",
+            "printedName": "init(name:written:size:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "CopyProgressInfo",
+                "printedName": "BlinkFiles.CopyProgressInfo",
+                "usr": "s:10BlinkFiles16CopyProgressInfoV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt64",
+                "printedName": "Swift.UInt64",
+                "usr": "s:s6UInt64V"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "UInt64",
+                "printedName": "Swift.UInt64",
+                "usr": "s:s6UInt64V"
+              }
+            ],
+            "declKind": "Constructor",
+            "usr": "s:10BlinkFiles16CopyProgressInfoV4name7written4sizeACSS_s6UInt64VAHtcfc",
+            "mangledName": "$s10BlinkFiles16CopyProgressInfoV4name7written4sizeACSS_s6UInt64VAHtcfc",
+            "moduleName": "BlinkFiles",
+            "declAttributes": [
+              "AccessControl"
+            ],
+            "init_kind": "Designated"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:10BlinkFiles16CopyProgressInfoV",
+        "mangledName": "$s10BlinkFiles16CopyProgressInfoV",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl",
+          "RawDocComment"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopierFrom",
+        "printedName": "CopierFrom",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "copy",
+            "printedName": "copy(from:args:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<BlinkFiles.CopyProgressInfo, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyProgressInfo",
+                    "printedName": "BlinkFiles.CopyProgressInfo",
+                    "usr": "s:10BlinkFiles16CopyProgressInfoV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[any BlinkFiles.Translator]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Translator",
+                    "printedName": "any BlinkFiles.Translator",
+                    "usr": "s:10BlinkFiles10TranslatorP"
+                  }
+                ],
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "CopyArguments",
+                "printedName": "BlinkFiles.CopyArguments",
+                "usr": "s:10BlinkFiles13CopyArgumentsV"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles10CopierFromP4copy4from4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGSayAA10Translator_pG_AA0K9ArgumentsVtF",
+            "mangledName": "$s10BlinkFiles10CopierFromP4copy4from4args7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGSayAA10Translator_pG_AA0K9ArgumentsVtF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.CopierFrom>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.CopierFrom>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles10CopierFromP",
+        "mangledName": "$s10BlinkFiles10CopierFromP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "CopierTo",
+        "printedName": "CopierTo",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "copy",
+            "printedName": "copy(to:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<BlinkFiles.CopyProgressInfo, any Swift.Error>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "CopyProgressInfo",
+                    "printedName": "BlinkFiles.CopyProgressInfo",
+                    "usr": "s:10BlinkFiles16CopyProgressInfoV"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Error",
+                    "printedName": "any Swift.Error",
+                    "usr": "s:s5ErrorP"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Translator",
+                "printedName": "any BlinkFiles.Translator",
+                "usr": "s:10BlinkFiles10TranslatorP"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:10BlinkFiles8CopierToP4copy2to7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGAA10Translator_p_tF",
+            "mangledName": "$s10BlinkFiles8CopierToP4copy2to7Combine12AnyPublisherVyAA16CopyProgressInfoVs5Error_pGAA10Translator_p_tF",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0 where τ_0_0 : BlinkFiles.CopierTo>",
+            "sugared_genericSig": "<Self where Self : BlinkFiles.CopierTo>",
+            "protocolReq": true,
+            "reqNewWitnessTableEntry": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Protocol",
+        "usr": "s:10BlinkFiles8CopierToP",
+        "mangledName": "$s10BlinkFiles8CopierToP",
+        "moduleName": "BlinkFiles",
+        "declAttributes": [
+          "AccessControl"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FileAttributeKey",
+        "printedName": "FileAttributeKey",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "name",
+            "printedName": "name",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FileAttributeKey",
+                "printedName": "Foundation.FileAttributeKey",
+                "usr": "c:@T@NSFileAttributeKey"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:So18NSFileAttributeKeya10BlinkFilesE4nameABvpZ",
+            "mangledName": "$sSo18NSFileAttributeKeya10BlinkFilesE4nameABvpZ",
+            "moduleName": "BlinkFiles",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage"
+            ],
+            "isFromExtension": true,
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeKey",
+                    "printedName": "Foundation.FileAttributeKey",
+                    "usr": "c:@T@NSFileAttributeKey"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:So18NSFileAttributeKeya10BlinkFilesE4nameABvgZ",
+                "mangledName": "$sSo18NSFileAttributeKeya10BlinkFilesE4nameABvgZ",
+                "moduleName": "BlinkFiles",
+                "static": true,
+                "implicit": true,
+                "isFromExtension": true,
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "symbolicLinkTargetInfo",
+            "printedName": "symbolicLinkTargetInfo",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "FileAttributeKey",
+                "printedName": "Foundation.FileAttributeKey",
+                "usr": "c:@T@NSFileAttributeKey"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:So18NSFileAttributeKeya10BlinkFilesE22symbolicLinkTargetInfoABvpZ",
+            "mangledName": "$sSo18NSFileAttributeKeya10BlinkFilesE22symbolicLinkTargetInfoABvpZ",
+            "moduleName": "BlinkFiles",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "HasStorage"
+            ],
+            "isFromExtension": true,
+            "isLet": true,
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "FileAttributeKey",
+                    "printedName": "Foundation.FileAttributeKey",
+                    "usr": "c:@T@NSFileAttributeKey"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:So18NSFileAttributeKeya10BlinkFilesE22symbolicLinkTargetInfoABvgZ",
+                "mangledName": "$sSo18NSFileAttributeKeya10BlinkFilesE22symbolicLinkTargetInfoABvgZ",
+                "moduleName": "BlinkFiles",
+                "static": true,
+                "implicit": true,
+                "isFromExtension": true,
+                "accessorKind": "get"
+              }
+            ]
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "c:@T@NSFileAttributeKey",
+        "moduleName": "Foundation",
+        "declAttributes": [
+          "SynthesizedProtocol",
+          "SynthesizedProtocol",
+          "SynthesizedProtocol",
+          "SynthesizedProtocol",
+          "SynthesizedProtocol",
+          "SynthesizedProtocol",
+          "Sendable"
+        ],
+        "isExternal": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_SwiftNewtypeWrapper",
+            "printedName": "_SwiftNewtypeWrapper",
+            "usr": "s:s20_SwiftNewtypeWrapperP",
+            "mangledName": "$ss20_SwiftNewtypeWrapperP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "RawRepresentable",
+            "printedName": "RawRepresentable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "RawValue",
+                "printedName": "RawValue",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:SY",
+            "mangledName": "$sSY"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Sendable",
+            "printedName": "Sendable",
+            "usr": "s:s8SendableP",
+            "mangledName": "$ss8SendableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_HasCustomAnyHashableRepresentation",
+            "printedName": "_HasCustomAnyHashableRepresentation",
+            "usr": "s:s35_HasCustomAnyHashableRepresentationP",
+            "mangledName": "$ss35_HasCustomAnyHashableRepresentationP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "SendableMetatype",
+            "printedName": "SendableMetatype",
+            "usr": "s:s16SendableMetatypeP",
+            "mangledName": "$ss16SendableMetatypeP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_ObjectiveCBridgeable",
+            "printedName": "_ObjectiveCBridgeable",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "_ObjectiveCType",
+                "printedName": "_ObjectiveCType",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "NSString",
+                    "printedName": "Foundation.NSString",
+                    "usr": "c:objc(cs)NSString"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:s21_ObjectiveCBridgeableP",
+            "mangledName": "$ss21_ObjectiveCBridgeableP"
+          }
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "AnyPublisher",
+        "printedName": "AnyPublisher",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "just",
+            "printedName": "just(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<τ_0_0, τ_0_1>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_1"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "GenericTypeParam",
+                "printedName": "τ_0_0"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7Combine12AnyPublisherV10BlinkFilesE4justyACyxq_GxFZ",
+            "mangledName": "$s7Combine12AnyPublisherV10BlinkFilesE4justyACyxq_GxFZ",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0, τ_0_1 where τ_0_1 : Swift.Error>",
+            "sugared_genericSig": "<Output, Failure where Failure : Swift.Error>",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "Inlinable"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "fail",
+            "printedName": "fail(error:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "AnyPublisher",
+                "printedName": "Combine.AnyPublisher<τ_0_0, τ_0_1>",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_1"
+                  }
+                ],
+                "usr": "s:7Combine12AnyPublisherV"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "GenericTypeParam",
+                "printedName": "τ_0_1"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:7Combine12AnyPublisherV10BlinkFilesE4fail5errorACyxq_Gq__tFZ",
+            "mangledName": "$s7Combine12AnyPublisherV10BlinkFilesE4fail5errorACyxq_Gq__tFZ",
+            "moduleName": "BlinkFiles",
+            "genericSig": "<τ_0_0, τ_0_1 where τ_0_1 : Swift.Error>",
+            "sugared_genericSig": "<Output, Failure where Failure : Swift.Error>",
+            "static": true,
+            "declAttributes": [
+              "AccessControl",
+              "Inlinable"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Struct",
+        "usr": "s:7Combine12AnyPublisherV",
+        "mangledName": "$s7Combine12AnyPublisherV",
+        "moduleName": "Combine",
+        "genericSig": "<τ_0_0, τ_0_1 where τ_0_1 : Swift.Error>",
+        "sugared_genericSig": "<Output, Failure where Failure : Swift.Error>",
+        "intro_Macosx": "10.15",
+        "intro_iOS": "13.0",
+        "intro_tvOS": "13.0",
+        "intro_watchOS": "6.0",
+        "declAttributes": [
+          "Frozen",
+          "Available",
+          "Available",
+          "Available",
+          "Available"
+        ],
+        "isExternal": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Publisher",
+            "printedName": "Publisher",
+            "children": [
+              {
+                "kind": "TypeWitness",
+                "name": "Output",
+                "printedName": "Output",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_0"
+                  }
+                ]
+              },
+              {
+                "kind": "TypeWitness",
+                "name": "Failure",
+                "printedName": "Failure",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "GenericTypeParam",
+                    "printedName": "τ_0_1"
+                  }
+                ]
+              }
+            ],
+            "usr": "s:7Combine9PublisherP",
+            "mangledName": "$s7Combine9PublisherP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomPlaygroundDisplayConvertible",
+            "printedName": "CustomPlaygroundDisplayConvertible",
+            "usr": "s:s34CustomPlaygroundDisplayConvertibleP",
+            "mangledName": "$ss34CustomPlaygroundDisplayConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "Array",
+      "offset": 1491,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1556,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1561,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1627,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 1632,
+      "length": 1,
+      "value": "1"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2312,
+      "length": 4,
+      "value": "true"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/CopyFiles.swift",
+      "kind": "BooleanLiteral",
+      "offset": 2412,
+      "length": 5,
+      "value": "false"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/LocalFiles.swift",
+      "kind": "StringLiteral",
+      "offset": 1664,
+      "length": 9,
+      "value": "\"LocalFS\""
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/LocalFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 9171,
+      "length": 4,
+      "value": "1024"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/LocalFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 9178,
+      "length": 4,
+      "value": "1024"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/LocalFiles.swift",
+      "kind": "IntegerLiteral",
+      "offset": 9205,
+      "length": 1,
+      "value": "0"
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/BlinkFiles.swift",
+      "kind": "StringLiteral",
+      "offset": 1784,
+      "length": 10,
+      "value": "\"fileName\""
+    },
+    {
+      "filePath": "\/Users\/homo\/src\/cc\/tmux-mobile-mobile\/vendor\/blink\/BlinkFiles\/BlinkFiles.swift",
+      "kind": "StringLiteral",
+      "offset": 1869,
+      "length": 24,
+      "value": "\"symbolicLinkTargetInfo\""
+    }
+  ]
+}

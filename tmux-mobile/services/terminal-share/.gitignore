@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+public/app.js
+public/xterm.css
+.dev.vars
+public/streaming-asr-worklet.js

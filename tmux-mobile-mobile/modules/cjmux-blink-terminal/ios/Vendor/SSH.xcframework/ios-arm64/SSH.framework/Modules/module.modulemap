@@ -1,0 +1,10 @@
+framework module SSH {
+  umbrella header "SSH.h"
+  export *
+
+  module * { export * }
+}
+
+module SSH.Swift {
+  header "SSH-Swift.h"
+}

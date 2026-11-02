@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Drafts · T-MAX</title>
+    <link rel="icon" href="/icon-192.png" />
+    <script>
+      const embeddedParams = new URLSearchParams(location.search);
+      if (embeddedParams.get("embedded") === "1") {
+        document.documentElement.classList.add("is-embedded");
+      }
+      if (embeddedParams.get("id")) document.documentElement.classList.add("has-draft");
+      if (embeddedParams.get("embedded") === "1" || matchMedia("(max-width: 680px), (max-height: 600px)").matches)
+        document.documentElement.classList.add("compact-drafts");
+      try {
+        if (embeddedParams.get("embedded") !== "1" &&
+            localStorage.getItem("tmux-mobile-draft-library-collapsed") === "true") {
+          document.documentElement.classList.add("library-collapsed");
+        }
+      } catch {}
+      try {
+        const t = JSON.parse(
+          localStorage.getItem("tmux-mobile-theme") || "{}",
+        ).theme;
+        if (t && t !== "auto")
+          document.documentElement.dataset.theme =
+            t === "kami" ? "kami" : "dark";
+      } catch {}
+    </script>
+    <link rel="stylesheet" href="/paper-theme.css" />
+    <link rel="stylesheet" href="/drafts.css" />
+    <script type="module" src="/drafts.js"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a href="/command-center">← Sessions</a
+      ><a href="/drafts" class="brand">T-MAX <span>Drafts</span></a
+      ><button id="refresh" type="button">Refresh</button>
+    </header>
+    <p id="status" role="status" aria-live="polite">Loading…</p>
+    <a id="login" hidden>Sign in to view</a>
+    <main class="workspace">
+      <aside class="library" aria-label="Draft library">
+        <div class="library-header">
+          <span class="eyebrow">DRAFTS</span>
+          <button id="toggleLibrary" type="button" aria-expanded="true" aria-controls="libraryBody" aria-label="Collapse draft library" title="Collapse draft library">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M9 3v18m7-12-3 3 3 3" /></svg>
+            <span class="library-toggle-label">Drafts</span>
+          </button>
+        </div>
+        <div id="libraryBody" class="library-body" tabindex="0" role="region" aria-label="Browse drafts">
+        <div class="library-heading">
+          <h1 id="libraryTitle">All drafts</h1>
+          <p id="scope">Across all your machines, newest first.</p>
+          <a class="library-button all-drafts" href="/drafts">All drafts</a>
+          <div class="library-filters">
+            <div class="library-filter">
+              <label for="machineFilter">Machine</label>
+              <div class="library-select">
+                <select id="machineFilter"><option value="">All machines</option></select>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+              </div>
+            </div>
+            <div class="library-filter">
+              <label for="sortOrder">Sort</label>
+              <div class="library-select">
+                <select id="sortOrder">
+                  <option value="newest">Newest first</option>
+                  <option value="machine">Machine · newest first</option>
+                </select>
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <nav id="draftList" aria-label="Draft library"></nav>
+        <details id="createPanel" hidden>
+          <summary>New draft</summary>
+          <form id="createForm">
+            <label for="request">What should the Agent create?</label
+            ><textarea
+              id="request"
+              required
+              maxlength="4000"
+              placeholder="For example: explain this PR and diagram the data flow before and after."
+            ></textarea
+            ><label for="filename">HTML filename</label
+            ><input
+              id="filename"
+              value="review.html"
+              pattern="[a-zA-Z0-9][a-zA-Z0-9_-]{0,79}\.html"
+              required
+            /><button type="submit">Send to session</button
+            ><button id="copyCreate" type="button">Copy instructions</button>
+          </form>
+        </details>
+        <a class="skill-link" href="/skills/tmax-drafts/SKILL.md"
+          >Generation Skill ↗</a
+        >
+        </div>
+      </aside>
+      <section class="document" aria-label="Draft content">
+        <div class="document-toolbar">
+          <div class="document-heading">
+            <a class="library-button all-drafts" href="/drafts">← All drafts</a>
+            <h2 id="title">Select a draft</h2>
+            <p id="updated"></p>
+          </div>
+          <div class="document-actions">
+            <button id="toggleFeedback" type="button" aria-expanded="false" aria-controls="feedback" hidden>
+              Comments <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+            </button>
+            <button id="toggleTools" class="compact-only" type="button" aria-expanded="false" aria-controls="draftTools" aria-label="More draft actions">More</button>
+            <div id="draftTools" class="draft-tools">
+            <div class="compact-only draft-details">
+              <strong id="compactTitle">Select a draft</strong>
+              <p id="compactUpdated"></p>
+              <a class="library-button all-drafts" href="/drafts">All drafts</a>
+            </div>
+            <div class="library-select draft-version">
+              <label for="versions" class="sr-only">Version</label>
+              <select id="versions" aria-label="Version" hidden></select>
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m6 9 6 6 6-6" /></svg>
+            </div>
+            <a id="download" hidden>Download HTML</a
+            ><button id="share" type="button" aria-expanded="false" aria-controls="sharePanel" hidden>Share</button>
+            </div>
+          </div>
+        </div>
+        <section id="sharePanel" class="share-panel" aria-labelledby="shareTitle" hidden>
+          <div class="share-heading">
+            <h3 id="shareTitle">Share draft</h3>
+            <button id="closeShare" type="button" aria-label="Close sharing">×</button>
+          </div>
+          <p>The private review link requires sign-in and access to this session.</p>
+          <button id="copyPrivateLink" type="button">Copy private link</button>
+          <div class="public-sharing">
+            <h4 id="publicSharingTitle">Public link is off</h4>
+            <p>Anyone with the public link can view the latest version, including images and videos. Comments stay private.</p>
+            <div id="publicLinkRow" class="public-link-row" hidden>
+              <input id="publicLink" type="text" readonly aria-label="Public link" />
+              <button id="copyPublicLink" type="button">Copy public link</button>
+            </div>
+            <button id="togglePublicSharing" type="button" disabled>Enable public link</button>
+            <p id="sharingOwnerOnly" hidden>Only the owner or an administrator can change public sharing.</p>
+          </div>
+          <p id="shareStatus" role="status" aria-live="polite"></p>
+        </section>
+        <div id="empty" hidden>
+          <span class="paper-mark" aria-hidden="true">↗</span>
+          <h2>Start with a complete explanation</h2>
+          <p>
+            Your Agent publishes a complete HTML page here.<br />Leave overall feedback or select text to comment on a specific part.
+          </p>
+          <p id="emptyHint">
+            Open Drafts from a session card to start creating.
+          </p>
+        </div>
+        <iframe
+          id="canvas"
+          title="Draft canvas"
+          sandbox="allow-scripts"
+          referrerpolicy="no-referrer"
+          hidden
+        ></iframe>
+      </section>
+      <aside id="feedback" class="feedback" hidden>
+        <div class="feedback-heading">
+          <span class="eyebrow">FEEDBACK</span>
+          <h2>Refine this draft</h2>
+          <p>Leave overall feedback, or select text to comment on a specific part.</p>
+        </div>
+        <form id="commentForm">
+          <div class="selection-preview">
+            <blockquote id="selection" aria-live="polite">Overall comment · Whole draft</blockquote>
+            <button id="clearSelection" type="button" aria-label="Clear selected quote" title="Clear selected quote" hidden>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
+          </div>
+          <label for="comment">Your feedback</label
+          ><textarea
+            id="comment"
+            maxlength="4000"
+            required
+            placeholder="What would you like to change?"
+          ></textarea
+          ><button id="saveComment" type="submit" disabled>Add comment</button>
+        </form>
+        <div class="review-actions">
+          <button id="revise" type="button" aria-busy="false" disabled>Ask Agent to revise</button
+          ><button id="copyFeedback" type="button">Copy feedback</button>
+        </div>
+        <p id="feedbackStatus" role="status"></p>
+        <div id="comments"></div>
+      </aside>
+    </main>
+  </body>
+</html>

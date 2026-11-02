@@ -1,0 +1,517 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.2 effective-5.10 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)
+// swift-module-flags: -target arm64-apple-ios16.4-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name SSH
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.2
+import BlinkFiles
+import Combine
+import Dispatch
+import Foundation
+import LibSSH
+import Network
+import Network/*.IPv4Address*/
+import Network/*.IPv6Address*/
+import OpenSSH
+@_exported import SSH
+import Swift
+import System
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public enum FileError : Swift.Error {
+  case Fail(msg: Swift.String)
+}
+@_hasMissingDesignatedInitializers public class SFTPClient {
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class SFTPTranslator : BlinkFiles.Translator {
+  public var current: Swift.String {
+    get
+  }
+  public var fileType: Foundation.FileAttributeType {
+    get
+  }
+  public var isDirectory: Swift.Bool {
+    get
+  }
+  public var isConnected: Swift.Bool {
+    get
+  }
+  public init(on sftpClient: SSH.SFTPClient) throws
+  public func clone() -> any BlinkFiles.Translator
+  public func walkTo(_ path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  public func join(_ path: Swift.String) throws -> any BlinkFiles.Translator
+  public func directoryFilesAndAttributes() -> Combine.AnyPublisher<[BlinkFiles.FileAttributes], any Swift.Error>
+  public func open(flags: Swift.Int32) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  public func create(name: Swift.String, mode: _DarwinFoundation2.mode_t = S_IRWXU) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  public func remove() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  public func rmdir() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  public func mkdir(name: Swift.String, mode: _DarwinFoundation2.mode_t) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  public func stat() -> Combine.AnyPublisher<BlinkFiles.FileAttributes, any Swift.Error>
+  public func wstat(_ attrs: BlinkFiles.FileAttributes) -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class SFTPFile : BlinkFiles.File {
+  public func close() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  @objc deinit
+}
+extension SSH.SFTPFile : BlinkFiles.Reader, BlinkFiles.WriterTo {
+  public func read(max length: Swift.Int) -> Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>
+  public func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+extension SSH.SFTPFile : BlinkFiles.Writer {
+  public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+extension SSH.SSHClient {
+  public static func deleteKnownHost(inPath: Swift.String, host: Swift.String) throws
+}
+public enum DeleteKnownHostsError : Swift.Error {
+  case didNotFindHost
+  case failedWritingKnownHostsFile(path: Swift.String)
+  case failedReadingKnownHostsFile(path: Swift.String)
+  public var description: Swift.String {
+    get
+  }
+}
+extension Combine.AnyPublisher {
+  @inlinable internal static func demandingSubject<S, X>(_ subject: S, receiveRequest: @escaping (Combine.Subscribers.Demand) -> (), receiveCancel: (() -> Swift.Void)? = nil, on scheduler: X) -> Combine.AnyPublisher<S.Output, S.Failure> where S : Combine.Subject, X : Combine.Scheduler {
+     
+     
+     
+     
+     
+    
+    return .init(
+      subject
+     
+      .buffer(size: .max, prefetch: .byRequest, whenFull: .dropOldest)
+     
+      .handleEvents(
+        receiveCancel: receiveCancel,
+        receiveRequest: { receiveRequest($0) }
+      )
+      .subscribe(on: scheduler)
+    )
+  }
+}
+public enum PortForwardState {
+  case waiting(any Swift.Error)
+  case starting
+  case ready
+  case error(any Swift.Error)
+}
+public enum SSHPortForwardError : Swift.Error {
+  case nwError(msg: Swift.String)
+  public init(title: Swift.String, _ error: any Swift.Error)
+}
+public class SSHPortForwardListener {
+  public init(on localPort: Swift.UInt16, toDestination host: Swift.String, on remotePort: Swift.UInt16, using client: SSH.SSHClient)
+  public func connect() -> Combine.AnyPublisher<SSH.PortForwardState, any Swift.Error>
+  public func ready() -> Combine.AnyPublisher<Swift.Void, any Swift.Error>
+  public func close()
+  @objc deinit
+}
+public class SSHPortForwardClient {
+  public init(forward address: Swift.String, onPort localPort: Swift.UInt16, toRemotePort remotePort: Swift.UInt16, bindAddress: Swift.String? = nil, using client: SSH.SSHClient)
+  public func ready() -> Combine.AnyPublisher<Swift.Void, any Swift.Error>
+  public func connect() -> Combine.AnyPublisher<SSH.PortForwardState, any Swift.Error>
+  public func close()
+  @objc deinit
+}
+extension Network.NWConnection : SSH.WriterTo {
+  final public func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+extension Network.NWConnection : SSH.Writer {
+  final public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public protocol PublicKey {
+  var type: Swift.String { get }
+  func encode() throws -> Foundation.Data
+}
+public protocol Signer {
+  var publicKey: any SSH.PublicKey { get }
+  func sign(_ message: Foundation.Data, algorithm: Swift.String?) throws -> Foundation.Data
+  var comment: Swift.String? { get }
+  var sshKeyType: SSH.SSHKeyType { get }
+}
+extension SSH.PublicKey {
+  public func authorizedKey(withComment comment: Swift.String) throws -> Swift.String
+}
+public enum SSHAgentRequestType : Swift.UInt8 {
+  case requestIdentities
+  case requestSignature
+  public init?(rawValue: Swift.UInt8)
+  public typealias RawValue = Swift.UInt8
+  public var rawValue: Swift.UInt8 {
+    get
+  }
+}
+public enum SSHAgentResponseType : Swift.UInt8 {
+  case failure
+  case success
+  case answerIdentities
+  case responseSignature
+  public init?(rawValue: Swift.UInt8)
+  public typealias RawValue = Swift.UInt8
+  public var rawValue: Swift.UInt8 {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers public class SSHAgentKey {
+  final public let signer: any SSH.Signer
+  final public let name: Swift.String
+  @objc deinit
+}
+public class SSHAgent {
+  public var ring: [SSH.SSHAgentKey] {
+    get
+  }
+  public init()
+  public func linkTo(agent: SSH.SSHAgent)
+  public func attachTo(client: SSH.SSHClient)
+  public func loadKey(_ key: any SSH.Signer, aka name: Swift.String, constraints: [any SSH.SSHAgentConstraint]? = nil)
+  public func removeKey(_ name: Swift.String) -> (any SSH.Signer)?
+  public func clear()
+  @objc deinit
+}
+public enum SSHEncode {
+  public static func data(from str: Swift.String) -> Foundation.Data
+  public static func data(from int: Swift.UInt32) -> Foundation.Data
+  public static func data(from bytes: Foundation.Data) -> Foundation.Data
+}
+public enum SSHDecode {
+}
+public struct SCPError : Swift.Error {
+}
+public struct SCPMode : Swift.OptionSet {
+  public let rawValue: Swift.Int
+  public init(rawValue: Swift.Int)
+  public static let Sink: SSH.SCPMode
+  public static let Source: SSH.SCPMode
+  public static let Recursive: SSH.SCPMode
+  public typealias ArrayLiteralElement = SSH.SCPMode
+  public typealias Element = SSH.SCPMode
+  public typealias RawValue = Swift.Int
+}
+@_hasMissingDesignatedInitializers public class SCPClient : BlinkFiles.CopierFrom, BlinkFiles.CopierTo {
+  public static func execute(using ssh: SSH.SSHClient, as mode: SSH.SCPMode, root quotedPath: Swift.String) -> Combine.AnyPublisher<SSH.SCPClient, any Swift.Error>
+  public func close()
+  @objc deinit
+}
+extension SSH.SCPClient {
+  public func copy(from ts: [any BlinkFiles.Translator], args: BlinkFiles.CopyArguments = CopyArguments()) -> BlinkFiles.CopyProgressInfoPublisher
+}
+extension SSH.SCPClient : SSH.Writer {
+  public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+extension SSH.SCPClient {
+  public func copy(to t: any BlinkFiles.Translator) -> BlinkFiles.CopyProgressInfoPublisher
+}
+public class SOCKSServer {
+  public init(_ port: Swift.UInt16 = 1080, proxy client: SSH.SSHClient) throws
+  public func close()
+  @objc deinit
+}
+public protocol SSHAgentConstraint {
+  var name: Swift.String { get }
+  func enforce(useOf key: SSH.SSHAgentKey, by client: SSH.SSHClient) -> Swift.Bool
+}
+public class SSHConstraintTrustedConnectionOnly : SSH.SSHAgentConstraint {
+  public var name: Swift.String {
+    get
+  }
+  public init()
+  public func enforce(useOf key: SSH.SSHAgentKey, by client: SSH.SSHClient) -> Swift.Bool
+  @objc deinit
+}
+public func SSHInit()
+@_hasMissingDesignatedInitializers public class SSHClient {
+  final public let host: Swift.String
+  final public let options: SSH.SSHClientConfig
+  public typealias ExecProxyCommandCallback = (Swift.String, Swift.Int32, Swift.Int32) -> Swift.Void
+  public var isConnected: Swift.Bool {
+    get
+  }
+  public var agent: SSH.SSHAgent? {
+    get
+  }
+  public var issueBanner: Swift.String? {
+    get
+  }
+  public struct PTY {
+    public init(rows: Swift.Int32 = 80, columns: Swift.Int32 = 24, emulator: Swift.String = "xterm-256color")
+  }
+  public var handleSessionException: ((any Swift.Error) -> ())?
+  public static func dial(_ host: Swift.String, with opts: SSH.SSHClientConfig, withProxy proxyCb: SSH.SSHClient.ExecProxyCommandCallback? = nil) -> Combine.AnyPublisher<SSH.SSHClient, any Swift.Error>
+  public func clientAddressIP() -> Swift.String?
+  public func verifyKnownHost() -> Combine.AnyPublisher<SSH.SSHClient, any Swift.Error>
+  public func connect() -> Combine.AnyPublisher<SSH.SSHClient, any Swift.Error>
+  public func requestInteractiveShell(withPTY pty: SSH.SSHClient.PTY? = PTY(), withEnvVars vars: [Swift.String : Swift.String] = [:], withAgentForwarding forwardAgent: Swift.Bool = false) -> Combine.AnyPublisher<SSH.Stream, any Swift.Error>
+  public func requestSFTP() -> Combine.AnyPublisher<SSH.SFTPClient, any Swift.Error>
+  public func requestExec(command cmd: Swift.String, withPTY pty: SSH.SSHClient.PTY? = nil, withEnvVars vars: [Swift.String : Swift.String] = [:], withAgentForwarding forwardAgent: Swift.Bool = false) -> Combine.AnyPublisher<SSH.Stream, any Swift.Error>
+  public func requestForward(to endpoint: Swift.String, port: Swift.Int32, from host: Swift.String, localPort: Swift.Int32) -> Combine.AnyPublisher<SSH.Stream, any Swift.Error>
+  public func requestReverseForward(bindTo address: Swift.String?, port: Swift.Int32) -> Combine.AnyPublisher<Combine.PassthroughSubject<SSH.Stream, any Swift.Error>, any Swift.Error>
+  public static func run(withTimer: Swift.Bool = false)
+  @objc deinit
+}
+public typealias SSHLogPublisher = Combine.PassthroughSubject<Swift.String, Swift.Never>
+public enum SSHLogLevel : Swift.Int {
+  case none
+  case warn
+  case info
+  case debug
+  case trace
+  public init?(_ level: Swift.String)
+  public init?(rawValue: Swift.Int)
+  public typealias RawValue = Swift.Int
+  public var rawValue: Swift.Int {
+    get
+  }
+}
+public class SSHLogger {
+  public init(verbosity level: SSH.SSHLogLevel, logger: SSH.SSHLogPublisher?)
+  public func message(_ message: Swift.String, _ level: SSH.SSHLogLevel)
+  @objc deinit
+}
+public enum SSHError : Swift.Error, Swift.Equatable {
+  public static func == (lhs: SSH.SSHError, rhs: SSH.SSHError) -> Swift.Bool
+  case again
+  case connError(msg: Swift.String)
+  case operationError(msg: Swift.String)
+  case notImplemented(Swift.String)
+  case authFailed(methods: [any SSH.AuthMethod])
+  case authError(msg: Swift.String)
+  public var description: Swift.String {
+    get
+  }
+}
+public enum DispatchStreamError : Swift.Error {
+  case read(msg: Swift.String)
+  case write(msg: Swift.String)
+  public var description: Swift.String {
+    get
+  }
+}
+public class DispatchOutputStream : SSH.Writer {
+  public init(stream: Swift.Int32)
+  public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+  public func close()
+  @objc deinit
+}
+public class DispatchInputStream {
+  public init(stream: Swift.Int32)
+  public func close()
+  @objc deinit
+}
+extension SSH.DispatchInputStream : SSH.WriterTo {
+  public func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public enum SSHKeyError : Swift.Error, Foundation.LocalizedError {
+  case general(title: Swift.String, rc: Swift.Int32? = nil)
+  case wrongPassphrase
+  public var errorDescription: Swift.String? {
+    get
+  }
+}
+public enum SSHKeyType : Swift.Int32 {
+  case rsa
+  case dsa
+  case ecdsa
+  case ed25519
+  case rsaCert
+  case dsaCert
+  case ecdsaCert
+  case ed25519Cert
+  case xmss
+  case xmssCert
+  case ecdsaSK
+  case ecdsaSKCert
+  case ed25519SK
+  case ed25519SKCert
+  public var shortName: Swift.String {
+    get
+  }
+  public var shortUnderscoredName: Swift.String {
+    get
+  }
+  public var defaultKeyName: Swift.String {
+    get
+  }
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+@_hasMissingDesignatedInitializers public class SSHKey : SSH.Signer, SSH.PublicKey {
+  public var comment: Swift.String? {
+    get
+  }
+  public var publicKey: any SSH.PublicKey {
+    get
+  }
+  public var type: Swift.String {
+    get
+  }
+  public var sshKeyType: SSH.SSHKeyType {
+    get
+  }
+  public var size: Swift.UInt32 {
+    get
+  }
+  convenience public init(fromFile privateKeyPath: Swift.String, passphrase: Swift.String = "", withPublicFileCert publicCertPath: Swift.String? = nil) throws
+  convenience public init(fromFileBlob privateKey: Foundation.Data, passphrase: Swift.String = "", withPublicFileCertBlob publicCert: Foundation.Data? = nil) throws
+  public init(fromPublicBlob data: Foundation.Data) throws
+  public init(fromPublicKeyFile path: Swift.String) throws
+  public init(type: SSH.SSHKeyType, bits: Swift.UInt32) throws
+  public func sign(_ message: Foundation.Data, algorithm: Swift.String? = nil) throws -> Foundation.Data
+  public func verify(signature bytes: Foundation.Data, of data: Foundation.Data) throws -> Swift.Bool
+  public func encode() throws -> Foundation.Data
+  public func privateKeyFileBlob(comment: Swift.String? = nil, passphrase: Swift.String? = nil) throws -> Foundation.Data
+  @objc deinit
+}
+extension SSH.SSHKey {
+  public static func sanitize(key str: Swift.String) -> Swift.String
+  public static func sanitize(key blob: Foundation.Data) -> Foundation.Data
+}
+public enum SSHDigest : Swift.Int32 {
+  case md5
+  case sha1, sha256, sha384, sha512
+  public init?(rawValue: Swift.String)
+  public init?(rawValue: Swift.Int32)
+  public typealias RawValue = Swift.Int32
+  public var rawValue: Swift.Int32 {
+    get
+  }
+}
+public enum FingerPrintType : Swift.UInt32 {
+  case `default`
+  case hex, base64, bubbleabble, randomart
+  public init?(rawValue: Swift.UInt32)
+  public typealias RawValue = Swift.UInt32
+  public var rawValue: Swift.UInt32 {
+    get
+  }
+}
+extension SSH.SSHKey {
+  public func fingerprint(digest: SSH.SSHDigest = .sha512, type: SSH.FingerPrintType = .base64) -> Swift.String
+}
+public protocol AuthMethod {
+  func name() -> Swift.String
+  var displayName: Swift.String { get }
+}
+extension SSH.AuthMethod {
+  public var displayName: Swift.String {
+    get
+  }
+}
+public enum AuthState {
+  case success
+  case denied
+  case `continue`(auth: Combine.AnyPublisher<SSH.AuthState, any Swift.Error>)
+  case partial
+}
+public class AuthPassword : SSH.AuthMethod {
+  public init(with password: Swift.String)
+  public func name() -> Swift.String
+  @objc deinit
+}
+public class AuthNone : SSH.AuthMethod {
+  public init()
+  public func name() -> Swift.String
+  @objc deinit
+}
+public struct Prompt {
+  public let name: Swift.String
+  public let instruction: Swift.String
+  public struct Question {
+    public let prompt: Swift.String
+    public let echo: Swift.Bool
+  }
+  public var userPrompts: [SSH.Prompt.Question]
+}
+public class AuthPasswordInteractive : SSH.AuthMethod {
+  public func name() -> Swift.String
+  public typealias RequestAnswersCb = (SSH.Prompt) -> Combine.AnyPublisher<[Swift.String], any Swift.Error>
+  public init(requestAnswers f: @escaping SSH.AuthPasswordInteractive.RequestAnswersCb, wrongRetriesAllowed: Swift.Int = 1)
+  @objc deinit
+}
+public class AuthKeyboardInteractive : SSH.AuthMethod {
+  public typealias RequestAnswersCb = (SSH.Prompt) -> Combine.AnyPublisher<[Swift.String], any Swift.Error>
+  public init(requestAnswers f: @escaping SSH.AuthKeyboardInteractive.RequestAnswersCb, wrongRetriesAllowed: Swift.Int = 3)
+  public func name() -> Swift.String
+  @objc deinit
+}
+public class AuthPublicKey : SSH.AuthMethod {
+  public var displayName: Swift.String {
+    get
+  }
+  public init(privateKey: Swift.String, keyName: Swift.String = "")
+  public func name() -> Swift.String
+  @objc deinit
+}
+public class AuthAgent : SSH.AuthMethod {
+  public func name() -> Swift.String
+  public init(_ agent: SSH.SSHAgent)
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class Stream : SSH.Reader, SSH.Writer, SSH.WriterTo {
+  public var handleCompletion: (() -> ())?
+  public var handleFailure: ((any Swift.Error) -> ())?
+  public func connect(stdout out: any BlinkFiles.Writer, stdin input: (any BlinkFiles.WriterTo)? = nil, stderr err: (any BlinkFiles.Writer)? = nil)
+  public func read(max length: Swift.Int) -> Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>
+  public func read_err(max length: Swift.Int) -> Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>
+  public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+  public func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+  public func sendEOF() -> Combine.AnyPublisher<Swift.Void, any Swift.Error>
+  public func resizePty(rows: Swift.Int32, columns: Swift.Int32) -> Combine.AnyPublisher<Swift.Void, any Swift.Error>
+  public func cancel()
+  @objc deinit
+}
+public typealias Reader = BlinkFiles.Reader
+public typealias ReaderFrom = BlinkFiles.ReaderFrom
+public typealias Writer = BlinkFiles.Writer
+public typealias WriterTo = BlinkFiles.WriterTo
+public enum InteractiveResponse {
+  case affirmative
+  case negative
+  public static func == (a: SSH.InteractiveResponse, b: SSH.InteractiveResponse) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+public enum VerifyHost {
+  case changed(serverFingerprint: Swift.String)
+  case unknown(serverFingerprint: Swift.String)
+  case notFound(serverFingerprint: Swift.String)
+}
+public struct SSHClientConfig : Swift.CustomStringConvertible, Swift.Equatable {
+  public let user: Swift.String
+  public let port: Swift.String
+  public typealias RequestVerifyHostCallback = (SSH.VerifyHost) -> Combine.AnyPublisher<SSH.InteractiveResponse, any Swift.Error>
+  public var description: Swift.String {
+    get
+  }
+  public init(user: Swift.String, port: Swift.String? = nil, proxyJump: Swift.String? = nil, proxyCommand: Swift.String? = nil, authMethods: [any SSH.AuthMethod]? = nil, agent: SSH.SSHAgent? = nil, loggingVerbosity: SSH.SSHLogLevel? = nil, verifyHostCallback: SSH.SSHClientConfig.RequestVerifyHostCallback? = nil, connectionTimeout: Swift.Int? = nil, sshDirectory: Swift.String? = nil, sshClientConfigPath: Swift.String? = nil, logger: SSH.SSHLogPublisher? = nil, keepAliveInterval: Swift.Int? = nil, compression: Swift.Bool? = nil, compressionLevel: Swift.Int? = nil, ciphers: Swift.String? = nil, macs: Swift.String? = nil, bindAddress: Swift.String? = nil, hostKeyAlgorithms: Swift.String? = nil, rekeyDataLimit: Swift.UInt? = nil, kexAlgorithms: Swift.String? = nil, kbdInteractiveAuthentication: Swift.Bool? = nil, passwordAuthentication: Swift.Bool? = nil, pubKeyAuthentication: Swift.Bool? = nil, hostbasedAuthentication: Swift.Bool? = nil, gatewayPorts: Swift.Bool? = nil)
+  public static func == (lhs: SSH.SSHClientConfig, rhs: SSH.SSHClientConfig) -> Swift.Bool
+}
+extension SSH.SSHAgentRequestType : Swift.Equatable {}
+extension SSH.SSHAgentRequestType : Swift.Hashable {}
+extension SSH.SSHAgentRequestType : Swift.RawRepresentable {}
+extension SSH.SSHAgentResponseType : Swift.Equatable {}
+extension SSH.SSHAgentResponseType : Swift.Hashable {}
+extension SSH.SSHAgentResponseType : Swift.RawRepresentable {}
+extension SSH.SSHLogLevel : Swift.Equatable {}
+extension SSH.SSHLogLevel : Swift.Hashable {}
+extension SSH.SSHLogLevel : Swift.RawRepresentable {}
+extension SSH.SSHKeyType : Swift.Equatable {}
+extension SSH.SSHKeyType : Swift.Hashable {}
+extension SSH.SSHKeyType : Swift.RawRepresentable {}
+extension SSH.SSHDigest : Swift.Equatable {}
+extension SSH.SSHDigest : Swift.Hashable {}
+extension SSH.SSHDigest : Swift.RawRepresentable {}
+extension SSH.FingerPrintType : Swift.Equatable {}
+extension SSH.FingerPrintType : Swift.Hashable {}
+extension SSH.FingerPrintType : Swift.RawRepresentable {}
+extension SSH.InteractiveResponse : Swift.Equatable {}
+extension SSH.InteractiveResponse : Swift.Hashable {}

@@ -1,0 +1,4 @@
+export function textSelectionHtml(text: string, background: string, foreground: string, dark = false, monospace = false) {
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><style>html,body{margin:0;background:${background};color:${foreground};color-scheme:${dark ? 'dark' : 'light'}}pre{margin:0;padding:16px;font:${monospace ? '14px/1.5 ui-monospace,Menlo,monospace' : '17px/1.6 -apple-system,system-ui,sans-serif'};white-space:pre-wrap;overflow-wrap:anywhere;-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}::selection{background:${dark ? '#b58900' : '#155c86'};color:${dark ? '#002b36' : '#fff'}}</style></head><body><pre>${escaped}</pre></body></html>`;
+}

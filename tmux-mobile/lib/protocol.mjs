@@ -1,0 +1,260 @@
+// Wire protocol between a local agent (`server.mjs --register`) and the
+// controller (`server.mjs --controller`). Pure data + frame helpers, no I/O —
+// imported by both
+// sides so the contract lives in exactly one place. Bump PROTOCOL_VERSION on
+// any breaking frame change.
+
+export const PROTOCOL_VERSION = 1;
+
+// Compatibility version for the code that runs on each connected machine.
+// Bump this only when an existing connector must be git-updated for correctness.
+// Do not bump it for controller/frontend-only deploys.
+// "12": transport moved from raw `ws` to Socket.IO — a hard boundary, since a
+// raw-ws connector cannot speak to a Socket.IO controller (or vice versa). The
+// controller and every connector must be updated together.
+// "13": rmux web-share requests carry a frontendUrl that the connector must
+// pass to `rmux web-share --frontend-url`; otherwise shares silently fall back
+// to share.rmux.io and miss our patched frontend.
+// "14": connectors can replicate raw Claude/Codex JSONL as acknowledged,
+// newline-aligned transcript chunks. The controller advertises whether archive
+// ingestion is enabled; old connectors remain readable but cannot populate it.
+// "15": connector startup takes a machine-local lock per controller + stable
+// agent identity before authentication or dialing, preventing accidental
+// duplicate launchers from replacing a healthy connection.
+// "16": Command Center inventory uses one process/topology snapshot and
+// incrementally parses transcript appends instead of rescanning every pane's
+// full process tree and JSONL tail every four seconds.
+// "17": an authenticated iOS client can authorize its generated Ed25519 public
+// key on a selected machine through the existing Connector channel. The
+// Connector writes only to its own OS account's authorized_keys.
+// "18": Command Center inventory includes the live agent model and reasoning
+// effort parsed from each pane footer.
+// "19": transcript archive bytes use a dedicated, rate-limited HTTP upload.
+// Keeping multi-megabyte backfill off the control WebSocket prevents ordered
+// data frames from trapping Engine.IO pong packets behind an upload.
+// "20": bound Command Center transcript previews and make periodic inventory
+// snapshots volatile so oversized or obsolete refreshes cannot queue ahead of
+// control RPCs and heartbeats.
+// "21": treat transcript backfill as low-priority physical-link traffic and
+// abort an in-flight upload whenever control health is lost, then retry it from
+// the durable cursor after reconnecting.
+// "22": Command Center inventory includes the Agent-native conversation name
+// extracted from Codex and Claude Code's local session metadata.
+// "23": Pi session discovery, live state and incremental transcript replication.
+// "24": production-domain aliases preserve credentials, identity and locks;
+// hello reports the actual controller URL for migration verification.
+// "25": file uploads no longer hit the Connector's WebSocket message-size cap.
+// "26": file attachments use independent HTTP downloads instead of control frames.
+// "27": on-demand tmux terminal sharing directly through our Cloudflare relay.
+// "28": terminal share uses the Backend string result for tmux session lookup.
+// "30": Claude transcript lookup requires process ownership; no cwd/mtime guessing.
+// "31": shared terminals support scrollback snapshots and acknowledged file uploads.
+// "32": find explicitly resumed Codex transcripts when a shared daemon owns the writer.
+// "33": bind transcripts to the pane's foreground job, excluding suspended/background agents.
+// "34": read modern Codex sessions through its existing shared app-server.
+// "35": match Claude's project-storage encoding for worktrees and special characters.
+export const CONNECTOR_COMPAT_VERSION = "35";
+
+// Socket.IO path the agent dials and the controller accepts agents on. (Socket.IO
+// reconnection/heartbeat semantics replaced the old explicit WS close codes.)
+export const AGENT_WS_PATH = "/agent/connect";
+
+// Transcript bytes deliberately do not share AGENT_WS_PATH. WebSocket control
+// traffic (heartbeats, inventory and tmux RPCs) must remain responsive even
+// while a connector catches up a large local transcript.
+export const AGENT_TRANSCRIPT_UPLOAD_PATH = "/agent/transcript";
+
+// Raw request-body bytes. Kept shared by connector and controller so an
+// oversized JSONL record is quarantined locally instead of becoming a
+// permanently rejected pending upload.
+export const MAX_TRANSCRIPT_CHUNK_BYTES = 16 * 1024 * 1024;
+
+// Frame types (the `t` field).
+export const MSG = {
+  HELLO: "hello", // agent -> hub, once right after connecting
+  INFO: "info", // hub -> agent, metadata for this controller instance
+  INVENTORY: "inventory", // agent -> hub, latest Command Center snapshot
+  TRANSCRIPT_CHUNK: "transcript_chunk", // agent -> hub, raw newline-aligned JSONL bytes
+  TRANSCRIPT_ACK: "transcript_ack", // hub -> agent, durable archive cursor / error
+  REQ: "req", // hub -> agent
+  RES: "res", // agent -> hub, answering a req by id
+};
+
+export const AGENT_FEATURES = {
+  commandCenterInventory: true,
+  transcriptArchive: true,
+};
+
+// The complete set of operations the hub can ask an agent to perform. This is
+// the entire surface an agent must implement; everything else (format strings,
+// parsing, id validation, AI) stays on the hub, so agents are dumb executors
+// and tmux behavior never drifts between local and cloud mode.
+export const OP = {
+  TMUX: "tmux", // tmux-compatible mux CLI { args, options } -> { stdout }
+  READDIR: "readdir", // { path: string } -> { entries: {name,isDirectory}[] }
+  BRANCH: "branch", // { path: string } -> { branch: string, worktree: boolean }
+  // Read a file for the smart content viewer. { path, baseDir, maxBytes } ->
+  // { base64, size, truncated }. The agent confines `path` to the `baseDir`
+  // subtree (the pane's cwd) and refuses anything outside it.
+  READFILE: "readfile",
+  // Resolve the git remote (GitHub repo) for a directory, for window metadata.
+  // { path } -> { host, owner, name } (empty strings when not a git/remote dir).
+  REPO: "repo",
+  // Full command line of the foreground process on a tty, for agent detection
+  // when the agent runs via an interpreter (e.g. `node /usr/bin/codex`, where
+  // pane_current_command is just "node"). { tty } -> { command } (full argv
+  // string, or "" if it can't be determined).
+  PANECMD: "panecmd",
+  // Write an uploaded file to a temp directory on the target machine, for the
+  // composer's "attach a file" action. { name, base64 } -> { path, name } (the
+  // absolute path the bytes were written to). Name is sanitized to a basename.
+  WRITEFILE: "writefile",
+  WRITEFILE_HTTP: "writefileHttp",
+  // Walk the process tree under a pid, for the "fork this agent" quick action.
+  // { rootPid: number } -> { processes: {pid,ppid,command}[] }.
+  PROCESS_TREE: "processTree",
+  AGENT_LAST_RESPONSE: "agentLastResponse",
+  // { rootPid: number, cwd?: string } ->
+  //   { result: null } if the pane isn't running a known agent, otherwise
+  //   { result: { kind: "codex" | "claude", sessionId, transcriptPath, text } }
+  // text is the agent's most recent assistant message lifted from its own
+  // JSONL transcript on the agent machine. cwd is used for Claude Code's
+  // filesystem fallback (it doesn't keep its transcript file open, so lsof
+  // alone can't find it).
+  AGENT_TRANSCRIPT: "agentTranscript",
+  // Same detection as AGENT_LAST_RESPONSE, but the result carries every
+  // user/assistant turn (filtered to clean dialogue — tool calls, tool
+  // results, system reminders, environment context, etc. are dropped):
+  //   { result: { kind, sessionId, transcriptPath, turns: [{role, text, t?}] } }
+  // Create a new git worktree + branch off an existing checkout, for the
+  // "New branch" quick action on a bare-repo-backed worktree.
+  //   { fromDir: string, branch: string } -> { path: string, branch: string }
+  // The agent runs `git -C <fromDir> worktree add -b <branch> <siblingPath>`,
+  // where <siblingPath> is a directory named after the branch next to fromDir.
+  WORKTREE_ADD: "worktreeAdd",
+  // RMUX-only: create a browser operator share for a pane.
+  // { target: "%pane", ttlSeconds?: number, tunnelProvider?: string, frontendUrl?: string } ->
+  //   { operatorUrl, code, expiresAt, shareId, target, tunnelProvider, tunnelUrl }
+  RMUX_WEB_SHARE: "rmuxWebShare",
+  TERMINAL_SHARE: "terminalShare",
+  // Install one Controller-validated Ed25519 public key for an authenticated
+  // iOS device into the Connector OS user's ~/.ssh/authorized_keys.
+  // { publicKey, marker } -> { installed, present, changed, fingerprint,
+  //                            systemHostname, sshHosts, username, port }
+  SSH_AUTHORIZE_KEY: "sshAuthorizeKey",
+};
+
+// Ops an agent advertises in its hello frame (helloFrame attaches this). The
+// controller checks against it before brokering, so a request for an op an
+// older connector doesn't support fails fast with a clear "out of date" message
+// instead of leaking a raw "unknown op" error. An agent omitting this list
+// (pre-capabilities) is treated as supporting only the original three ops.
+export const AGENT_OPS = [
+  OP.TMUX,
+  OP.READDIR,
+  OP.BRANCH,
+  OP.READFILE,
+  OP.REPO,
+  OP.PANECMD,
+  OP.WRITEFILE,
+  OP.WRITEFILE_HTTP,
+  OP.PROCESS_TREE,
+  OP.AGENT_LAST_RESPONSE,
+  OP.AGENT_TRANSCRIPT,
+  OP.WORKTREE_ADD,
+  OP.RMUX_WEB_SHARE,
+  OP.TERMINAL_SHARE,
+  OP.SSH_AUTHORIZE_KEY,
+];
+export const LEGACY_AGENT_OPS = [OP.TMUX, OP.READDIR, OP.BRANCH];
+
+// Defense-in-depth: an agent only runs tmux subcommands on this list, so even a
+// compromised/buggy hub cannot make it run e.g. `tmux kill-server`.
+export const TMUX_SUBCOMMANDS = new Set([
+  "list-sessions",
+  "list-windows",
+  "list-panes",
+  "capture-pane",
+  "send-keys",
+  "set-buffer",
+  "load-buffer",
+  "paste-buffer",
+  "new-session",
+  "rename-session",
+  "new-window",
+  "rename-window",
+  "kill-window",
+  "display-message",
+  "set-option", // per-session @tm_annotation user option (follow-up notes)
+  "show-options",
+]);
+
+export function isAllowedTmux(args) {
+  return Array.isArray(args) && TMUX_SUBCOMMANDS.has(args[0]);
+}
+
+export function helloFrame(info) {
+  // `ops` advertises this agent's supported operations so the controller can
+  // detect a version-skewed (older) connector before brokering a newer op.
+  // `connectorVersion` is the coarse "must update local checkout" gate. Raw
+  // git `revision` is still passed in `info` for diagnostics and update logs.
+  // `agentId` is the durable route identity; `machine` is only the display name.
+  const suppliedFeatures =
+    info?.features && typeof info.features === "object" && !Array.isArray(info.features)
+      ? info.features
+      : {};
+  return {
+    t: MSG.HELLO,
+    v: PROTOCOL_VERSION,
+    ops: AGENT_OPS,
+    connectorVersion: CONNECTOR_COMPAT_VERSION,
+    ...info,
+    features: { ...AGENT_FEATURES, ...suppliedFeatures },
+  };
+}
+
+export function infoFrame(info) {
+  return { t: MSG.INFO, ...info };
+}
+
+export function inventoryFrame(info) {
+  return { t: MSG.INVENTORY, ...info };
+}
+
+export function transcriptChunkFrame(id, chunk) {
+  return { t: MSG.TRANSCRIPT_CHUNK, id, chunk };
+}
+
+export function transcriptAckOk(id, result) {
+  return { t: MSG.TRANSCRIPT_ACK, id, ok: true, result };
+}
+
+export function transcriptAckErr(id, error) {
+  return {
+    t: MSG.TRANSCRIPT_ACK,
+    id,
+    ok: false,
+    error: {
+      message: error?.message || String(error),
+      code: error?.code,
+      expected: error?.expected,
+    },
+  };
+}
+
+export function reqFrame(id, op, payload) {
+  return { t: MSG.REQ, id, op, ...payload };
+}
+
+export function resOk(id, result) {
+  return { t: MSG.RES, id, ok: true, ...result };
+}
+
+export function resErr(id, error) {
+  return {
+    t: MSG.RES,
+    id,
+    ok: false,
+    error: { message: error?.message || String(error), code: error?.code },
+  };
+}

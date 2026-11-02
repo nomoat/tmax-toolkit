@@ -1,0 +1,1020 @@
+// Hub mode transport. Accepts outbound agent WebSocket connections, tracks the
+// online machines, and exposes a per-machine Backend implementation that turns
+// backend calls into protocol frames sent to that machine's agent. The hub
+// holds all the proven app logic (it imports server.mjs's handlers); this file
+// is only the wire + registry + remote-backend impl.
+
+import { Server } from "socket.io";
+import {
+  AGENT_OPS,
+  AGENT_TRANSCRIPT_UPLOAD_PATH,
+  AGENT_WS_PATH,
+  CONNECTOR_COMPAT_VERSION,
+  LEGACY_AGENT_OPS,
+  MSG,
+  OP,
+  infoFrame,
+  reqFrame,
+  transcriptAckErr,
+  transcriptAckOk,
+} from "./protocol.mjs";
+
+const RPC_TIMEOUT_MS = 15_000;
+// Engine.IO heartbeat: the controller pings every PING_INTERVAL_MS and considers
+// a connection dead if no pong returns within PING_TIMEOUT_MS. This replaces the
+// hand-rolled ping/pong + transport-stale sweep that used to live here; Socket.IO
+// runs the timers on BOTH ends and fires "disconnect" on a dead peer.
+const PING_INTERVAL_MS = 10_000;
+const PING_TIMEOUT_MS = Number(process.env.AGENT_TRANSPORT_STALE_MS) || PING_INTERVAL_MS * 2;
+// Legacy writefile and readfile use base64 frames. Current uploads use HTTP
+// and do not depend on this control-channel message limit.
+const MAX_FRAME_BYTES = Number(process.env.AGENT_MAX_FRAME_BYTES) || 100 * 1024 * 1024;
+const INVENTORY_STALE_MS = Number(process.env.COMMAND_CENTER_INVENTORY_STALE_MS) || 20_000;
+
+export function createHub(
+  httpServer,
+  {
+    logEvent = () => {},
+    authenticateAgent = () => "",
+    superAdminEmails = [],
+    machineShares = [],
+    allowMachine = () => true,
+    currentRevision = "",
+    expectedRevision = currentRevision,
+    updateRef = "main",
+    updateScriptUrl = "",
+    requiredConnectorVersion = CONNECTOR_COMPAT_VERSION,
+    machineAliases = {},
+    livenessIntervalMs = PING_INTERVAL_MS,
+    pingTimeoutMs = PING_TIMEOUT_MS,
+    inventoryStaleMs = INVENTORY_STALE_MS,
+    onTranscriptChunk = null,
+    transcriptArchiveEnabledForMachine = null,
+    transcriptRootDiscovery = false,
+  } = {},
+) {
+  // route id -> { owner, agentId, machineId, ws, info, inventory, pending, connectedAt, lastSeen }
+  const machines = new Map();
+  const superAdmins = new Set(
+    (superAdminEmails || []).map((item) => String(item || "").trim().toLowerCase()).filter(Boolean),
+  );
+  const shares = normalizeMachineShares(machineShares);
+  const aliases = normalizeMachineAliases(machineAliases);
+  const io = new Server(httpServer, {
+    path: AGENT_WS_PATH,
+    serveClient: false,
+    transports: ["websocket"],
+    pingInterval: livenessIntervalMs,
+    pingTimeout: pingTimeoutMs,
+    maxHttpBufferSize: MAX_FRAME_BYTES,
+  });
+  let rpcSeq = 0;
+
+  // Authenticate the agent during the Socket.IO handshake. Credentials arrive in
+  // the handshake `auth` payload (or, for older clients, the upgrade headers); we
+  // shim a req-like object so the controller's existing authenticateAgent (which
+  // reads a Bearer token / x-agent-secret header) works unchanged.
+  io.use((socket, next) => {
+    const handshake = socket.handshake || {};
+    const headers = { ...(handshake.headers || {}) };
+    const auth = handshake.auth || {};
+    if (auth.token) headers.authorization = `Bearer ${auth.token}`;
+    if (auth.secret) headers["x-agent-secret"] = auth.secret;
+    if (auth.user) headers["x-agent-user"] = auth.user;
+    const owner = normalizeUser(authenticateAgent({ headers }));
+    if (!owner) {
+      const error = new Error("forbidden");
+      error.data = { code: "auth" }; // the agent treats this as permanent
+      next(error);
+      return;
+    }
+    socket.data.owner = owner;
+    next();
+  });
+
+  io.on("connection", (socket) => onAgentConnect(socket, socket.data.owner));
+
+  function onAgentConnect(ws, owner) {
+    let machineId = null;
+    let routeId = null;
+    const pending = new Map();
+
+    ws.on("message", (raw) => {
+      let msg;
+      try {
+        msg = JSON.parse(raw.toString());
+      } catch {
+        return;
+      }
+      if (msg.t === MSG.HELLO) {
+        machineId = String(msg.machine || "").trim();
+        if (!machineId) {
+          ws.disconnect(true);
+          return;
+        }
+        const canonicalMachineId = canonicalForMachineId(machineId);
+        const agentId = normalizeAgentId(msg.agentId);
+        if (!allowMachine({ owner, agentId, machineId })) {
+          logEvent("agent_registration_denied", { userId: owner.userId, agentId, machineId });
+          ws.disconnect(true);
+          return;
+        }
+        const routeIdentity = agentId || canonicalMachineId;
+        routeId = machineKey(owner.userId, routeIdentity);
+        const existing = machines.get(routeId);
+        // Force-disconnect the older connector. Socket.IO delivers this to the
+        // agent as "io server disconnect", which suppresses its auto-reconnect —
+        // exactly right for a replaced (stale) connector.
+        if (existing && existing.ws !== ws) {
+          logEvent("agent_connection_replaced", {
+            userId: owner.userId || undefined,
+            hostedDomain: owner.hd || undefined,
+            agentId: agentId || undefined,
+            machineId,
+            previousMachineId: existing.machineId,
+            previousConnectionAgeMs: Math.max(0, Date.now() - existing.connectedAt),
+            reason: "same_agent_id",
+          });
+          existing.ws.disconnect(true);
+        }
+        const machine = {
+          id: routeId,
+          owner,
+          ownerId: owner.userId,
+          agentId,
+          machineId,
+          canonicalMachineId,
+          ws,
+          info: msg,
+          inventory: null,
+          pending,
+          connectedAt: Date.now(),
+          lastSeen: Date.now(),
+          transcriptArchiveEnabled: false,
+          transcriptRootDiscoveryEnabled: false,
+        };
+        machine.transcriptArchiveEnabled = canUseTranscriptArchive(machine);
+        machine.transcriptRootDiscoveryEnabled = Boolean(
+          machine.transcriptArchiveEnabled && transcriptRootDiscovery,
+        );
+        machines.set(routeId, machine);
+        // Capability negotiation must happen after HELLO establishes the
+        // authenticated route identity. Sending it on bare socket connect can
+        // start a restored publisher before the hub knows which machine it is,
+        // causing the first chunk to be dropped and retried after a timeout.
+        sendInfo(ws, {
+          transcriptArchive: machine.transcriptArchiveEnabled,
+          transcriptRootDiscovery: machine.transcriptRootDiscoveryEnabled,
+          transcriptUploadPath: machine.transcriptArchiveEnabled
+            ? AGENT_TRANSCRIPT_UPLOAD_PATH
+            : "",
+        });
+        logEvent("agent_online", {
+          userId: owner.userId || undefined,
+          hostedDomain: owner.hd || undefined,
+          agentId: agentId || undefined,
+          machineId,
+          canonicalMachineId,
+          os: msg.os,
+          arch: msg.arch,
+        });
+        return;
+      }
+      if (msg.t === MSG.INVENTORY) {
+        const machine = routeId ? machines.get(routeId) : null;
+        if (!machine || machine.ws !== ws) return;
+        machine.lastSeen = Date.now();
+        updateInventory(machine, msg);
+        return;
+      }
+      if (msg.t === MSG.TRANSCRIPT_CHUNK) {
+        const machine = routeId ? machines.get(routeId) : null;
+        if (!machine || machine.ws !== ws) return;
+        machine.lastSeen = Date.now();
+        void receiveTranscriptChunk(machine, msg);
+        return;
+      }
+      if (msg.t === MSG.RES) {
+        const waiter = pending.get(msg.id);
+        if (!waiter) return;
+        pending.delete(msg.id);
+        clearTimeout(waiter.timer);
+        if (msg.ok) {
+          waiter.resolve(msg);
+        } else {
+          const error = new Error(msg.error?.message || "agent error");
+          error.code = msg.error?.code;
+          waiter.reject(error);
+        }
+      }
+    });
+
+    async function receiveTranscriptChunk(machine, msg) {
+      if (!msg.id) return;
+      try {
+        const result = await commitTranscriptChunk({
+          owner: machine.owner,
+          agentId: machine.agentId,
+          machineId: machine.machineId,
+          chunk: msg.chunk,
+        });
+        sendTranscriptAck(ws, transcriptAckOk(msg.id, result));
+      } catch (error) {
+        sendTranscriptAck(ws, transcriptAckErr(msg.id, error));
+      }
+    }
+
+    ws.on("disconnect", () => {
+      const machine = routeId ? machines.get(routeId) : null;
+      if (machine?.ws === ws) dropMachine(machine, "socket_closed");
+      for (const waiter of pending.values()) {
+        clearTimeout(waiter.timer);
+        waiter.reject(new Error("Agent disconnected"));
+      }
+      pending.clear();
+    });
+  }
+
+  function sendInfo(ws, features) {
+    try {
+      ws.send(
+        JSON.stringify(
+          infoFrame({
+            revision: currentRevision || "",
+            features: {
+              transcriptArchive: Boolean(features?.transcriptArchive),
+              transcriptRootDiscovery: Boolean(features?.transcriptRootDiscovery),
+              transcriptUploadPath: String(features?.transcriptUploadPath || ""),
+            },
+          }),
+        ),
+      );
+    } catch {}
+  }
+
+  function canUseTranscriptArchive(machine) {
+    if (typeof onTranscriptChunk !== "function") return false;
+    if (typeof transcriptArchiveEnabledForMachine !== "function") return true;
+    try {
+      return Boolean(
+        transcriptArchiveEnabledForMachine({
+          owner: machine.owner,
+          machine: {
+            id: machine.id,
+            agentId: machine.agentId,
+            machineId: machine.machineId,
+            canonicalMachineId: machine.canonicalMachineId,
+          },
+        }),
+      );
+    } catch (error) {
+      logEvent("transcript_archive_eligibility_failed", {
+        userId: machine.ownerId || undefined,
+        agentId: machine.agentId || undefined,
+        machineId: machine.machineId,
+        message: error.message || String(error),
+      });
+      return false;
+    }
+  }
+
+  // HTTP transcript ingestion is intentionally independent from the live
+  // control socket. The same agent token still scopes the owner, while the
+  // stable agent/machine identity keeps archive keys identical to the legacy
+  // WebSocket path. This continues to accept a commit during a brief control
+  // reconnect instead of duplicating a large frame on every new socket.
+  async function commitTranscriptChunk({ owner: ownerInput, agentId, machineId, chunk, signal } = {}) {
+    const owner = normalizeUser(ownerInput);
+    const rawMachineId = String(machineId || "").trim();
+    if (!owner || !rawMachineId) {
+      const error = new Error("Authenticated owner and machineId are required");
+      error.code = "invalid_transcript_identity";
+      error.status = 400;
+      throw error;
+    }
+    const normalizedAgentId = normalizeAgentId(agentId);
+    if (!allowMachine({ owner, agentId: normalizedAgentId, machineId: rawMachineId })) {
+      throw Object.assign(new Error("Machine registration is not allowed"), { code: "machine_access_denied", status: 403 });
+    }
+    const machine = {
+      id: machineKey(owner.userId, normalizedAgentId || canonicalForMachineId(rawMachineId)),
+      owner,
+      ownerId: owner.userId,
+      agentId: normalizedAgentId,
+      machineId: rawMachineId,
+      canonicalMachineId: canonicalForMachineId(rawMachineId),
+      transcriptArchiveEnabled: false,
+    };
+    machine.transcriptArchiveEnabled = canUseTranscriptArchive(machine);
+    if (typeof onTranscriptChunk !== "function" || !machine.transcriptArchiveEnabled) {
+      const error = new Error("Transcript archive is not enabled for this machine");
+      error.code = "transcript_archive_disabled";
+      error.status = 403;
+      throw error;
+    }
+    try {
+      return await onTranscriptChunk({
+        owner,
+        machine: {
+          id: machine.id,
+          agentId: machine.agentId,
+          machineId: machine.machineId,
+          canonicalMachineId: machine.canonicalMachineId,
+        },
+        chunk,
+        signal,
+      });
+    } catch (error) {
+      logEvent("transcript_chunk_failed", {
+        userId: owner.userId || undefined,
+        agentId: machine.agentId || undefined,
+        machineId: machine.machineId,
+        code: error.code || undefined,
+        message: error.message || String(error),
+      });
+      throw error;
+    }
+  }
+
+  function sendTranscriptAck(ws, frame) {
+    try {
+      ws.send(JSON.stringify(frame));
+    } catch {}
+  }
+
+  function dropMachine(machine, reason, { terminate = false } = {}) {
+    if (!machine || machines.get(machine.id)?.ws !== machine.ws) return false;
+    machines.delete(machine.id);
+    logEvent("agent_offline", {
+      userId: machine.ownerId || undefined,
+      hostedDomain: machine.owner?.hd || undefined,
+      machineId: machine.machineId,
+      reason,
+    });
+    if (terminate) {
+      try {
+        machine.ws.disconnect(true);
+      } catch {}
+    }
+    return true;
+  }
+
+  // Viewer-side access is owner-only except for explicit super-admins and
+  // narrowly scoped machine shares loaded from the access-control file.
+  function canAccessMachine(viewerInput, machine) {
+    const viewer = normalizeUser(viewerInput);
+    if (!viewer || !machine) return false;
+    if (!allowMachine(machine)) return false;
+    if (superAdmins.has(viewer.email) || superAdmins.has(viewer.userId)) return true;
+    if (viewer.userId && viewer.userId === machine.owner.userId) return true;
+    const domain = emailDomain(viewer.email);
+    return shares.some(
+      (share) =>
+        share.ownerEmail === machine.owner.email &&
+        share.agentId === machine.agentId &&
+        (share.emails.has(viewer.email) || (domain && share.domains.has(domain))),
+    );
+  }
+
+  function visibleMachines(viewerInput) {
+    return [...machines.values()].filter((machine) => canAccessMachine(viewerInput, machine));
+  }
+
+  // Only the registering owner or an explicit super-admin may grant an iOS
+  // device a durable OS login. Route ids are exact: there is deliberately no
+  // hostname/alias compatibility fallback here.
+  function managedMachineFor(viewerInput, routeId) {
+    const viewer = normalizeUser(viewerInput);
+    const machine = machines.get(String(routeId || ""));
+    if (!viewer || !machine) return null;
+    if (superAdmins.has(viewer.email) || superAdmins.has(viewer.userId)) return machine;
+    return viewer.userId && viewer.userId === machine.owner.userId ? machine : null;
+  }
+
+  function machineFor(viewerInput, machineId) {
+    const id = String(machineId || "");
+    const direct = machines.get(id);
+    if (direct && canAccessMachine(viewerInput, direct)) return direct;
+
+    // Backward compatibility for old URLs/localStorage that still carry the
+    // raw hostname-derived machine id. Use it only when the viewer has exactly
+    // one accessible machine with that raw id; otherwise require the route id.
+    const canonicalId = canonicalForMachineId(id);
+    const matches = visibleMachines(viewerInput).filter(
+      (machine) =>
+        machine.agentId === id ||
+        machine.machineId === id ||
+        machine.canonicalMachineId === id ||
+        machine.canonicalMachineId === canonicalId ||
+        aliasForMachineId(machine.machineId) === id,
+    );
+    return matches.length === 1 ? matches[0] : null;
+  }
+
+  function rpcToMachine(machine, machineId, op, payload) {
+    if (!machine || !machine.ws.connected) {
+      const error = new Error(`Machine ${machineId} is offline`);
+      error.status = 503;
+      throw error;
+    }
+    const id = `r${(rpcSeq = (rpcSeq + 1) >>> 0)}`;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        machine.pending.delete(id);
+        reject(new Error(`Agent request timed out: ${op}`));
+      }, op === OP.WRITEFILE_HTTP ? payload.timeoutMs : RPC_TIMEOUT_MS);
+      machine.pending.set(id, { resolve, reject, timer });
+      machine.ws.send(JSON.stringify(reqFrame(id, op, payload)));
+    });
+  }
+
+  function rpc(viewer, machineId, op, payload) {
+    return rpcToMachine(machineFor(viewer, machineId), machineId, op, payload);
+  }
+
+  // A Backend (see lib/backend.mjs) bound to one machine's agent.
+  function backendFor(viewer, machineId) {
+    function currentMachineInfo() {
+      return machineFor(viewer, machineId)?.info || {};
+    }
+    function currentMachineCacheKey() {
+      return machineFor(viewer, machineId)?.id || String(machineId || "");
+    }
+    return {
+      // Lets request handlers check whether the connected agent can do an op
+      // before brokering it, so a version-skewed connector yields a clear
+      // message rather than a raw "unknown op" rejection.
+      supportsOp(op) {
+        return agentSupportsOp(viewer, machineId, op);
+      },
+      metadataCacheKey() {
+        return `hub:${currentMachineCacheKey()}`;
+      },
+      muxKind() {
+        const info = currentMachineInfo();
+        return info.mux || inferMuxKind(info);
+      },
+      muxCommand(mux = "") {
+        const kind = normalizeMuxKind(mux) || this.muxKind();
+        const found = normalizeMuxes(currentMachineInfo()).find((item) => item.mux === kind);
+        return found?.muxCommand || currentMachineInfo().muxCommand || kind;
+      },
+      muxKinds() {
+        const muxes = normalizeMuxes(currentMachineInfo()).map((item) => item.mux);
+        return muxes.length > 0 ? muxes : [this.muxKind()];
+      },
+      async tmux(args, options) {
+        const mux = normalizeMuxKind(options?.mux);
+        const res = await rpc(viewer, machineId, OP.TMUX, { args, options, mux });
+        return res.stdout ?? "";
+      },
+      async readdir(dirPath) {
+        const res = await rpc(viewer, machineId, OP.READDIR, { path: dirPath });
+        return res.entries ?? [];
+      },
+      async branch(dirPath) {
+        const res = await rpc(viewer, machineId, OP.BRANCH, { path: dirPath });
+        return {
+          branch: res.branch ?? "",
+          worktree: Boolean(res.worktree),
+          bare: Boolean(res.bare),
+          commonDir: res.commonDir ?? "",
+        };
+      },
+      async repo(dirPath) {
+        const res = await rpc(viewer, machineId, OP.REPO, { path: dirPath });
+        return { host: res.host ?? "", owner: res.owner ?? "", name: res.name ?? "" };
+      },
+      async worktreeAdd({ fromDir, branch } = {}) {
+        const res = await rpc(viewer, machineId, OP.WORKTREE_ADD, { fromDir, branch });
+        return { path: res.path ?? "", branch: res.branch ?? "" };
+      },
+      async rmuxWebShare({ target, ttlSeconds, tunnelProvider, frontendUrl } = {}) {
+        const res = await rpc(viewer, machineId, OP.RMUX_WEB_SHARE, {
+          target,
+          ttlSeconds,
+          tunnelProvider,
+          frontendUrl,
+        });
+        return {
+          ok: Boolean(res.ok ?? true),
+          role: res.role ?? "operator",
+          target: res.target ?? target ?? "",
+          shareId: res.shareId ?? "",
+          operatorUrl: res.operatorUrl ?? "",
+          code: res.code ?? "",
+          expiresAt: res.expiresAt ?? "",
+          tunnelProvider: res.tunnelProvider ?? tunnelProvider ?? "",
+          tunnelUrl: res.tunnelUrl ?? "",
+        };
+      },
+      async terminalShare({ action, target, config } = {}) {
+        return rpc(viewer, machineId, OP.TERMINAL_SHARE, { action, target, config });
+      },
+      async authorizeSshKey({ publicKey, marker } = {}) {
+        const res = await rpc(viewer, machineId, OP.SSH_AUTHORIZE_KEY, {
+          publicKey,
+          marker,
+        });
+        return {
+          installed: Boolean(res.installed),
+          present: Boolean(res.present),
+          changed: Boolean(res.changed),
+          fingerprint: res.fingerprint ?? "",
+          systemHostname: res.systemHostname ?? "",
+          username: res.username ?? "",
+          sshHosts: Array.isArray(res.sshHosts) ? res.sshHosts : [],
+          port: Number(res.port ?? 22),
+        };
+      },
+      async paneCommand(tty) {
+        const res = await rpc(viewer, machineId, OP.PANECMD, { tty });
+        return { command: res.command ?? "" };
+      },
+      async readfile(filePath, { baseDir, maxBytes } = {}) {
+        const res = await rpc(viewer, machineId, OP.READFILE, {
+          path: filePath,
+          baseDir,
+          maxBytes,
+        });
+        return {
+          base64: res.base64 ?? "",
+          size: Number(res.size ?? 0),
+          truncated: Boolean(res.truncated),
+        };
+      },
+      async writeTempFile(name, base64) {
+        const res = await rpc(viewer, machineId, OP.WRITEFILE, { name, base64 });
+        return { path: res.path ?? "", name: res.name ?? "" };
+      },
+      async writeTempFileHttp(name, token, timeoutMs) {
+        const res = await rpc(viewer, machineId, OP.WRITEFILE_HTTP, { name, token, timeoutMs });
+        return { path: res.path ?? "", name: res.name ?? "" };
+      },
+      async processTree(rootPid) {
+        const res = await rpc(viewer, machineId, OP.PROCESS_TREE, { rootPid });
+        return res.processes ?? [];
+      },
+      async agentLastResponse(arg) {
+        const rootPid = typeof arg === "object" && arg !== null ? arg.rootPid : arg;
+        const cwd = typeof arg === "object" && arg !== null ? arg.cwd || "" : "";
+        const res = await rpc(viewer, machineId, OP.AGENT_LAST_RESPONSE, {
+          rootPid,
+          cwd,
+        });
+        return res.result ?? null;
+      },
+      async agentTranscript(arg) {
+        const rootPid = typeof arg === "object" && arg !== null ? arg.rootPid : arg;
+        const cwd = typeof arg === "object" && arg !== null ? arg.cwd || "" : "";
+        const foregroundCommand =
+          typeof arg === "object" && arg !== null ? arg.foregroundCommand || "" : "";
+        const res = await rpc(viewer, machineId, OP.AGENT_TRANSCRIPT, {
+          rootPid,
+          cwd,
+          foregroundCommand,
+          paneTitle: typeof arg === "object" && arg !== null ? arg.paneTitle || "" : "",
+        });
+        return res.result ?? null;
+      },
+    };
+  }
+
+  function describeMachine(machine) {
+    // Version-skew detection: compare the agent's advertised ops against the
+    // controller's current AGENT_OPS. A connector missing any current op is
+    // running older code (e.g. it predates an op like PANECMD), so newer
+    // features silently fail. Surface it so the UI can prompt a restart.
+    const advertised = Array.isArray(machine.info?.ops)
+      ? machine.info.ops
+      : LEGACY_AGENT_OPS;
+    const missingOps = AGENT_OPS.filter((op) => !advertised.includes(op));
+    const connectorState = agentConnectorState(
+      machine.info?.connectorVersion,
+      requiredConnectorVersion,
+    );
+    const inventory = describeInventory(machine, inventoryStaleMs);
+    return {
+      id: machine.id,
+      agentId: machine.agentId || "",
+      machineId: machine.canonicalMachineId || machine.machineId,
+      rawMachineId: machine.machineId,
+      hostname: aliasForMachineId(machine.machineId) || machine.info.machine,
+      rawHostname: machine.info.machine,
+      systemHostname: machine.info.systemHostname || machine.info.machine,
+      sshHosts: Array.isArray(machine.info.sshHosts)
+        ? machine.info.sshHosts.map((host) => String(host || "")).filter(Boolean)
+        : [machine.info.systemHostname || machine.info.machine].filter(Boolean),
+      machineAlias: aliasForMachineId(machine.machineId),
+      // Who registered it (their Google email).
+      ownerId: machine.ownerId,
+      ownerEmail: machine.owner.email,
+      ownerHd: machine.owner.hd,
+      os: machine.info.os,
+      arch: machine.info.arch,
+      tmux: machine.info.tmux,
+      mux: machine.info.mux || inferMuxKind(machine.info),
+      muxCommand: machine.info.muxCommand || inferMuxKind(machine.info),
+      muxVersion: machine.info.muxVersion || machine.info.tmux || "",
+      muxes: normalizeMuxes(machine.info),
+      agentRevision: machine.info.revision || "",
+      controllerUrl: machine.info.controllerUrl || "",
+      connectorVersion: machine.info.connectorVersion || "",
+      agentCwd: machine.info.cwd || "",
+      homeDir: machine.info.homeDir || "",
+      username: machine.info.username || "",
+      nodePath: machine.info.node || "",
+      expectedRevision: expectedRevision || currentRevision || "",
+      updateRef: updateRef || "main",
+      updateScriptUrl: updateScriptUrl || "",
+      expectedConnectorVersion: requiredConnectorVersion || "",
+      online: true,
+      lastSeen: machine.lastSeen,
+      inventoryStatus: inventory.status,
+      inventorySource: inventory.source,
+      inventoryObservedAt: inventory.observedAt,
+      inventoryAgeMs: inventory.ageMs,
+      inventoryDurationMs: inventory.durationMs,
+      inventoryError: inventory.error,
+      agentCount: inventory.agents.length,
+      // Stale = older protocol surface or a connector compatibility
+      // mismatch. Raw server git revisions are diagnostic only; otherwise a
+      // controller/frontend-only deploy would force every machine to update.
+      stale: missingOps.length > 0 || connectorState.stale,
+      missingOps,
+      connectorStatus: connectorState.status,
+      revisionStatus: connectorState.status,
+    };
+  }
+
+  function listMachines(viewer = "") {
+    return visibleMachines(viewer).map(describeMachine);
+  }
+
+  function listAllMachines() {
+    return [...machines.values()].map(describeMachine);
+  }
+
+  function sshAuthorizationTarget(viewer, routeId) {
+    const machine = managedMachineFor(viewer, routeId);
+    return machine ? describeMachine(machine) : null;
+  }
+
+  async function authorizeSshKey(viewer, routeId, { publicKey, marker } = {}) {
+    const machine = managedMachineFor(viewer, routeId);
+    if (!machine) {
+      const error = new Error("Machine is not available for SSH authorization");
+      error.status = 403;
+      throw error;
+    }
+    const advertised = Array.isArray(machine.info?.ops)
+      ? machine.info.ops
+      : LEGACY_AGENT_OPS;
+    if (!advertised.includes(OP.SSH_AUTHORIZE_KEY)) {
+      const error = new Error(
+        "This machine's connector is out of date — update it before authorizing iOS SSH access.",
+      );
+      error.status = 501;
+      throw error;
+    }
+    const res = await rpcToMachine(machine, routeId, OP.SSH_AUTHORIZE_KEY, {
+      publicKey,
+      marker,
+    });
+    return {
+      installed: Boolean(res.installed),
+      present: Boolean(res.present),
+      changed: Boolean(res.changed),
+      fingerprint: res.fingerprint ?? "",
+      systemHostname: res.systemHostname ?? "",
+      username: res.username ?? "",
+      sshHosts: Array.isArray(res.sshHosts) ? res.sshHosts : [],
+      port: Number(res.port ?? 22),
+    };
+  }
+
+  function commandCenterInventory(viewer = "", machineId) {
+    const machine = machineFor(viewer, machineId);
+    if (!machine) return null;
+    return describeCommandCenterInventory(machine);
+  }
+
+  function describeCommandCenterInventory(machine) {
+    const inventory = describeInventory(machine, inventoryStaleMs);
+    const described = describeMachine(machine);
+    return {
+      machine: {
+        ...described,
+        agentCount: inventory.agents.length,
+      },
+      agents: inventory.agents,
+      hasInventory: Boolean(machine.inventory),
+      supportsInventory: machineSupportsInventory(machine),
+    };
+  }
+
+  function listCommandCenterInventories(viewer = "") {
+    return visibleMachines(viewer).map((machine) => commandCenterInventory(viewer, machine.id));
+  }
+
+  // Internal background consumers (notifications, event radio, etc.) read the
+  // snapshots that Connectors have already pushed. This deliberately exposes
+  // no backend handle, so they cannot accidentally turn a cache sweep into a
+  // fleet-wide live RPC fanout.
+  function listAllCommandCenterInventories() {
+    return [...machines.values()].map(describeCommandCenterInventory);
+  }
+
+  function hasMachine(viewer = "", machineId) {
+    return machineFor(viewer, machineId) !== null;
+  }
+
+  // Whether a connected agent advertised support for `op`. An agent that
+  // predates capability advertisement (no `ops` in its hello) is treated as
+  // supporting only the original ops, so the controller can return a clear
+  // "connector out of date" message instead of brokering an op it will reject.
+  function agentSupportsOp(viewer = "", machineId, op) {
+    const machine = machineFor(viewer, machineId);
+    if (!machine) return false;
+    const ops = Array.isArray(machine.info?.ops)
+      ? machine.info.ops
+      : LEGACY_AGENT_OPS;
+    return ops.includes(op);
+  }
+
+  function aliasForMachineId(machineId) {
+    return aliases.get(normalizeAliasKey(machineId)) || "";
+  }
+
+  function canonicalForMachineId(machineId) {
+    const value = String(machineId || "").trim();
+    return aliasForMachineId(value) || value;
+  }
+
+  // Prototype convenience: with exactly one machine online, the browser need
+  // not pick — the hub defaults to it, so the unmodified frontend just works.
+  function soleMachineId(viewer = "") {
+    const all = listMachines(viewer);
+    return all.length === 1 ? all[0].id : "";
+  }
+
+  // Called on controller shutdown (SIGTERM) when the runtime rolls out a new
+  // revision and tears down this instance. io.close() drops every agent
+  // connection at the transport level (NOT a server-initiated "io server
+  // disconnect"), so Socket.IO's auto-reconnect fires immediately and lands on
+  // the new instance rather than each agent staying pinned to this dying one
+  // until its socket eventually dies on its own.
+  function shutdown() {
+    machines.clear();
+    try {
+      io.close();
+    } catch {}
+  }
+
+  return {
+    backendFor,
+    listMachines,
+    listAllMachines,
+    sshAuthorizationTarget,
+    authorizeSshKey,
+    commandCenterInventory,
+    listCommandCenterInventories,
+    listAllCommandCenterInventories,
+    commitTranscriptChunk,
+    archiveSourceFor(viewer, routeId) {
+      const parts = String(routeId || "").split(":");
+      if (parts.length !== 3 || parts[0] !== "m") return null;
+      const ownerId = Buffer.from(parts[1], "base64url").toString("utf8");
+      const identity = Buffer.from(parts[2], "base64url").toString("utf8");
+      if (!ownerId || !identity || machineKey(ownerId, identity) !== routeId) return null;
+      const agentId = normalizeAgentId(identity);
+      if (!canAccessMachine(viewer, { owner: normalizeUser(ownerId), agentId })) return null;
+      return { ownerId, machineId: identity, agentId };
+    },
+    hasMachine,
+    agentSupportsOp,
+    soleMachineId,
+    shutdown,
+  };
+}
+
+function updateInventory(machine, msg) {
+  const receivedAt = Date.now();
+  const observedAt = normalizeTimestamp(msg.observedAt) || receivedAt;
+  machine.lastInventoryAt = receivedAt;
+  if (msg.ok) {
+    machine.inventory = {
+      ok: true,
+      observedAt,
+      receivedAt,
+      durationMs: normalizeNonNegativeNumber(msg.durationMs),
+      sequence: normalizeNonNegativeNumber(msg.sequence),
+      error: "",
+      agents: normalizeInventoryAgents(msg.agents),
+    };
+    return;
+  }
+  machine.inventory = {
+    ok: false,
+    observedAt,
+    receivedAt,
+    durationMs: normalizeNonNegativeNumber(msg.durationMs),
+    sequence: normalizeNonNegativeNumber(msg.sequence),
+    error: errorMessage(msg.error) || "Inventory scan failed",
+    agents: [],
+  };
+}
+
+function describeInventory(machine, staleMs = INVENTORY_STALE_MS) {
+  const inventory = machine.inventory;
+  const supports = machineSupportsInventory(machine);
+  if (!inventory) {
+    return {
+      status: supports ? "pending" : "unsupported",
+      source: supports ? "push" : "live-rpc",
+      observedAt: null,
+      ageMs: null,
+      durationMs: null,
+      error: "",
+      agents: [],
+    };
+  }
+  const ageMs = Math.max(0, Date.now() - (inventory.receivedAt || inventory.observedAt));
+  const status = inventory.ok
+    ? ageMs > staleMs
+      ? "stale"
+      : "fresh"
+    : "failed";
+  return {
+    status,
+    source: "push",
+    observedAt: inventory.observedAt,
+    ageMs,
+    durationMs: inventory.durationMs,
+    error: inventory.error || "",
+    agents: status === "fresh" && Array.isArray(inventory.agents) ? inventory.agents : [],
+  };
+}
+
+function machineSupportsInventory(machine) {
+  return Boolean(machine?.info?.features?.commandCenterInventory);
+}
+
+function inventoryAgeMs(machine) {
+  const observedAt =
+    machine?.lastInventoryAt ||
+    machine?.inventory?.receivedAt ||
+    machine?.connectedAt ||
+    machine?.lastSeen ||
+    0;
+  return Math.max(0, Date.now() - observedAt);
+}
+
+function normalizeInventoryAgents(agents) {
+  if (!Array.isArray(agents)) return [];
+  return agents
+    .filter((agent) => agent && typeof agent === "object" && !Array.isArray(agent))
+    .map((agent) => ({ ...agent }));
+}
+
+function normalizeMuxKind(value) {
+  const kind = String(value || "").trim().toLowerCase();
+  return kind === "rmux" || kind === "tmux" ? kind : "";
+}
+
+function normalizeMuxes(info = {}) {
+  const out = [];
+  for (const item of Array.isArray(info.muxes) ? info.muxes : []) {
+    const mux = normalizeMuxKind(item?.mux || item?.kind);
+    if (!mux || out.some((existing) => existing.mux === mux)) continue;
+    out.push({
+      mux,
+      kind: mux,
+      muxCommand: String(item.muxCommand || mux),
+      version: String(item.version || item.muxVersion || ""),
+    });
+  }
+  if (out.length === 0) {
+    const mux = normalizeMuxKind(info.mux) || inferMuxKind(info);
+    out.push({
+      mux,
+      kind: mux,
+      muxCommand: String(info.muxCommand || mux),
+      version: String(info.muxVersion || info.tmux || ""),
+    });
+  }
+  return out;
+}
+
+function normalizeTimestamp(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n > 0 ? n : 0;
+}
+
+function normalizeNonNegativeNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+}
+
+function errorMessage(error) {
+  if (!error) return "";
+  if (typeof error === "string") return error;
+  if (typeof error === "object") return String(error.message || "");
+  return String(error);
+}
+
+function machineKey(ownerId, machineId) {
+  return `m:${base64url(ownerId || "")}:${base64url(machineId || "")}`;
+}
+
+function normalizeMachineAliases(input) {
+  const aliases = new Map();
+  for (const [rawKey, rawValue] of Object.entries(input || {})) {
+    const key = normalizeAliasKey(rawKey);
+    const value = String(rawValue || "").trim();
+    if (key && value) aliases.set(key, value);
+  }
+  return aliases;
+}
+
+function normalizeMachineShares(input) {
+  return (Array.isArray(input) ? input : []).map((share) => ({
+    ownerEmail: String(share?.ownerEmail || "").trim().toLowerCase(),
+    agentId: normalizeAgentId(share?.agentId),
+    emails: new Set(
+      (Array.isArray(share?.emails) ? share.emails : [])
+        .map((value) => String(value || "").trim().toLowerCase())
+        .filter(Boolean),
+    ),
+    domains: new Set(
+      (Array.isArray(share?.domains) ? share.domains : [])
+        .map((value) => String(value || "").trim().toLowerCase())
+        .filter(Boolean),
+    ),
+  }));
+}
+
+function normalizeAliasKey(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function base64url(value) {
+  return Buffer.from(String(value)).toString("base64url");
+}
+
+function inferMuxKind(info = {}) {
+  const explicit = String(info.mux || "").trim().toLowerCase();
+  if (explicit === "rmux" || explicit === "tmux") return explicit;
+  const version = String(info.muxVersion || info.tmux || "").trim().toLowerCase();
+  return version.startsWith("rmux") ? "rmux" : "tmux";
+}
+
+function normalizeAgentId(value) {
+  const id = String(value || "").trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(id)
+    ? id
+    : "";
+}
+
+function normalizeUser(input) {
+  if (input === null || input === undefined) return null;
+  if (typeof input === "string") {
+    const userId = input.trim().toLowerCase();
+    if (!userId) return null;
+    return { userId, email: userId, hd: "" };
+  }
+  const email = String(input.email || input.userId || "").trim().toLowerCase();
+  const userId = String(input.userId || email).trim().toLowerCase();
+  if (!userId || !email) return null;
+  return {
+    userId,
+    email,
+    hd: String(input.hd || input.hostedDomain || "").trim().toLowerCase(),
+    sub: String(input.sub || ""),
+  };
+}
+
+function emailDomain(email) {
+  const value = String(email || "").trim().toLowerCase();
+  const at = value.lastIndexOf("@");
+  return at > 0 && at < value.length - 1 ? value.slice(at + 1) : "";
+}
+
+function agentConnectorState(agentVersion, expectedVersion) {
+  const expected = normalizeConnectorVersion(expectedVersion);
+  if (!expected) return { stale: false, status: "unverified" };
+  const agent = normalizeConnectorVersion(agentVersion);
+  // Version "1" was introduced after several already-compatible connectors had
+  // the full op surface but did not yet report connectorVersion. Accept those
+  // agents as compatible; missing ops are still handled separately as stale.
+  if (!agent && expected === "1") return { stale: false, status: "compatible" };
+  if (!agent) return { stale: true, status: "missing" };
+  if (agent === expected) return { stale: false, status: "current" };
+  return { stale: true, status: "outdated" };
+}
+
+function normalizeConnectorVersion(value) {
+  const version = String(value || "").trim();
+  if (!version || version === "dev") return "";
+  return version;
+}

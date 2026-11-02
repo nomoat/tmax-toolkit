@@ -1,0 +1,12 @@
+.git
+.gitignore
+.gcloudignore
+node_modules
+dist
+.env
+.env.*
+.claude
+tmp
+*.log
+.DS_Store
+services/terminal-share

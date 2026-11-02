@@ -1,0 +1,623 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="application-name" content="__APP_TITLE__" />
+    <meta name="apple-mobile-web-app-title" content="__APP_TITLE__" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- iOS uses apple-touch-icon for the home-screen icon, not the manifest's
+         icons[]. 180x180 is the modern default; iOS rounds it on the homescreen. -->
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <!-- Status-bar tint matches the kami paper ground when installed; switches
+         to the dark surface when the dark theme is in use. -->
+    <meta name="theme-color" content="#f4eee3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#17231d" media="(prefers-color-scheme: dark)" />
+    <!-- Old iOS status bar tint (used inside the standalone shell). -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <title>__APP_TITLE__</title>
+    <script>
+      // Apply saved theme before first paint to avoid a flash. Default: kami.
+      // "auto" follows the OS prefers-color-scheme.
+      try {
+        var t = JSON.parse(localStorage.getItem("tmux-mobile-theme") || "{}").theme || "auto";
+        var dark =
+          t === "dark" ||
+          (t === "auto" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "" : "kami";
+      } catch (e) {
+        document.documentElement.dataset.theme = "kami";
+      }
+    </script>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/paper-theme.css?v=1" />
+</head>
+  <body class="app-body">
+    <main class="app-shell">
+      <header class="mobile-topbar">
+        <button id="openTargetPicker" class="target-pill" type="button">
+          <strong id="mobileTargetLabel">No window selected</strong>
+        </button>
+        <!-- Quick-switch to a recently-visited window across ANY machine. Sits
+             right of the copy button; opens the global-recents popup below it.
+             Items are formatted exactly like the window title (the descriptor). -->
+        <div class="recents-menu">
+          <button id="globalRecentsToggle" class="icon-button" type="button" title="Recent windows" aria-label="Recent windows" aria-haspopup="true" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v5h5"/><path d="M3.05 13A9 9 0 1 0 6 5.3L3 8"/><path d="M12 7v5l4 2"/></svg>
+          </button>
+          <div id="globalRecentsMenu" class="recents-menu-popup" hidden role="menu" aria-label="Recent windows"></div>
+        </div>
+        <!-- "Needs you" pill: shown when one or more other windows' agents have
+             finished (unread) or are waiting on a question. Tap to jump. -->
+        <button id="needsAttention" class="needs-attention" type="button" hidden aria-live="polite"></button>
+        <!-- Global action: Read the current window aloud (TTS). Promoted to the
+             topbar from the composer. -->
+        <button id="speakWindow" type="button" class="topbar-read" title="Read current window" aria-label="Read current window">
+          <svg class="icon-idle" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+          <svg class="icon-busy" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>
+        </button>
+        <!-- Four window-management actions folded behind a single "More"
+             button so the topbar has room for the full path. -->
+        <div class="more-actions">
+          <button id="moreActionsToggle" class="icon-button" type="button" title="More" aria-label="More actions" aria-haspopup="true" aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden="true"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
+          </button>
+          <div id="moreActionsMenu" class="more-actions-menu" hidden role="menu" aria-label="More actions">
+            <button id="answerQuestion" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+              <span>Answer question</span>
+            </button>
+            <!-- Copy the current window's full descriptor (stable id + context)
+                 for bug reports / switching back later. Moved here from the
+                 topbar to save space. The label flips to "Copied" briefly. -->
+            <button id="copyWindowId" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="13" height="13" x="9" y="9" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span data-copy-label>Copy window id</span>
+            </button>
+            <button id="renameWindow" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <span>Rename window</span>
+            </button>
+            <button id="newWindow" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <span>New window</span>
+            </button>
+            <button id="duplicateWindow" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              <span>Duplicate window</span>
+            </button>
+            <!-- Shown only when the current window is a bare-repo-backed git
+                 worktree (gated by app.js via meta.git.bare). -->
+            <button id="newBranchWindow" class="more-actions-item" type="button" role="menuitem" hidden>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+              <span>New branch</span>
+            </button>
+            <button id="forkAgent" class="more-actions-item" type="button" role="menuitem" data-agent-fork>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="9" r="3"/><path d="M18 12a9 9 0 0 1-9 9"/><path d="M6 9v6"/></svg>
+              <span>Fork agent</span>
+            </button>
+            <button id="closeWindow" class="more-actions-item danger" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+              <span>Close window</span>
+            </button>
+            <button id="openDirectoryPicker" class="more-actions-item directory-trigger" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>
+              <span>Directories</span>
+            </button>
+            <a class="more-actions-item" href="/reports" role="menuitem"><span>Progress reports</span></a>
+            <a class="more-actions-item" href="/notification-settings.html" role="menuitem"><span>Notifications</span></a>
+            <a class="more-actions-item" href="/speech-settings.html" role="menuitem"><span>Settings</span></a>
+            <button id="openPinsSheet" class="more-actions-item" type="button" role="menuitem" title="See and manage every pinned artifact you can access">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>
+              <span>Pinned artifacts</span>
+            </button>
+            <button id="mobileRefresh" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+              <span>Refresh</span>
+            </button>
+            <button id="themeToggle" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18Z" fill="currentColor" stroke="none"/></svg>
+              <span>Toggle theme</span>
+            </button>
+            <button id="showTranscript" class="more-actions-item" type="button" role="menuitem" title="Show every user prompt + assistant response from the agent's own transcript">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <span>Transcript</span>
+            </button>
+            <a href="/command-center" class="more-actions-item" role="menuitem" title="Open the agent dashboard — every Codex / Claude / Pi session in one view">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+              <span>Command Center</span>
+            </a>
+            <a href="/auth/logout" class="more-actions-item" role="menuitem" title="Sign out and choose a different Google account">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+              <span>Logout</span>
+            </a>
+            <button id="openVoiceSettings" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+              <span>Voice settings</span>
+            </button>
+            <button id="openNotifySettings" class="more-actions-item" type="button" role="menuitem">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span>Notification sound</span>
+            </button>
+            <div class="more-actions-row" role="group" aria-label="Terminal font size">
+              <span>Terminal font</span>
+              <div class="font-size-controls">
+                <button id="fontSizeDecrease" class="font-size-button" type="button" aria-label="Smaller terminal font">A−</button>
+                <span id="fontSizeValue" aria-live="polite">13</span>
+                <button id="fontSizeIncrease" class="font-size-button" type="button" aria-label="Larger terminal font">A+</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="snapshot-panel">
+        <div class="toolbar">
+          <label class="line-picker">
+            <span>Lines</span>
+            <select id="lineCount">
+              <option value="50">50</option>
+              <option value="120">120</option>
+              <option value="250">250</option>
+              <option value="500" selected>500</option>
+              <option value="1000">1000</option>
+            </select>
+          </label>
+          <!-- The current window's note, right after the Lines picker. Click to
+               edit; same server-backed annotation shown in the window list. -->
+          <button id="snapshotNote" class="snapshot-note" type="button" hidden></button>
+          <button id="openFileBrowser" class="small-button toolbar-files" type="button" aria-label="Browse files in the current directory" title="Browse current directory">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+            <span>Files</span>
+          </button>
+          <button id="refreshSnapshot" class="small-button">Refresh</button>
+          <label class="toggle">
+            <input id="autoRefresh" type="checkbox" checked />
+            <span title="Pauses after 5 minutes without interaction; typing, clicking or scrolling keeps updates active">Auto · idle 5 min</span>
+          </label>
+          <span id="snapshotStaleIcon" class="snapshot-stale-icon" hidden title="Last refresh failed — showing previous content" aria-label="Snapshot may be stale" role="img">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </span>
+          <button id="fullscreenRead" class="small-button fullscreen-only" type="button" aria-label="Read current window">Read</button>
+          <button id="fullscreenSnapshot" class="small-button" type="button" aria-pressed="false" aria-label="Fullscreen">
+            <svg class="icon-idle" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" x2="14" y1="3" y2="10"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+            <svg class="icon-busy" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" x2="21" y1="10" y2="3"/><line x1="3" x2="10" y1="21" y2="14"/></svg>
+          </button>
+        </div>
+        <div id="refreshPausedBanner" class="refresh-paused-banner" hidden role="status">
+          <span>Auto-refresh paused after 5 minutes without interaction. Interact to resume.</span>
+          <button id="resumeTerminalRefresh" type="button" class="small-button">Resume updates</button>
+        </div>
+        <!-- Shown when the viewed pane is parked in tmux copy-mode (scrollback
+             pager), which intercepts input. Sending text/keys auto-exits it, but
+             this makes the frozen state visible with a one-tap escape. -->
+        <div id="copyModeBanner" class="copy-mode-banner" hidden role="status">
+          <span>Scroll mode is on — keys won't reach the program.</span>
+          <button id="exitCopyMode" type="button" class="small-button">Exit scroll mode</button>
+        </div>
+        <!-- Shown when the focused machine momentarily drops (deploy / wifi blip
+             / agent restart): we keep the current window and retry for a short
+             grace window before falling back to the "no machine" reset. -->
+        <div id="reconnectBanner" class="reconnect-banner" hidden role="status">
+          <span class="reconnect-spinner" aria-hidden="true"></span>
+          <span id="reconnectBannerText">Reconnecting…</span>
+        </div>
+        <!-- Shown when the connected machine's agent is running older code than
+             this controller (version skew) — newer features silently fail until
+             the connector is restarted. -->
+        <div id="staleAgentBanner" class="stale-agent-banner" hidden role="status">
+          <div class="stale-agent-text">
+            <strong>Connector out of date</strong>
+            <span id="staleAgentDetail">Restart it to enable newer features.</span>
+            <code id="staleAgentCmd" class="connector-cmd"></code>
+          </div>
+          <button id="staleAgentCopy" type="button" class="small-button" data-copy="staleAgentCmd">Copy update prompt</button>
+          <button id="staleAgentDismiss" class="icon-button stale-agent-dismiss" type="button" title="Dismiss" aria-label="Dismiss warning">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <pre id="snapshot" class="snapshot">Select a window.</pre>
+        <input id="paneInput" class="pane-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Pane keyboard input" tabindex="-1" />
+
+      </section>
+
+      <section class="control-panel">
+        <div id="chat" class="chat" hidden></div>
+
+        <!-- Composer: everything funnels through the text box. Snippets, voice,
+             and typing all populate it; Submit sends it. Only the direct terminal
+             keys (below) bypass the box. -->
+        <div class="composer">
+          <!-- Tactical snippets: one-tap chips that INSERT into the box. The ✎
+               opens the unified Insert picker (Snippets + Recent). Rendered by
+               app.js from persisted storage. -->
+          <div id="snippetBar" class="snippet-bar" aria-label="Snippets">
+            <div id="snippetChips" class="snippet-chips"></div>
+            <button id="manageSnippets" class="icon-button snippet-manage" type="button" title="Snippets & recent" aria-label="Snippets and recent">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+
+          <!-- Transcribe/send status + retry (hidden unless busy or a retry is pending). -->
+          <div id="voiceStatusRow" class="voice-status-row" hidden>
+            <div id="voiceStatus" class="voice-status" data-state="idle" role="status" aria-live="polite" title="Ready" aria-label="Ready"></div>
+            <button id="retryVoice" class="icon-button voice-action retry" type="button" hidden title="Retry transcription" aria-label="Retry transcription">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            </button>
+          </div>
+
+          <!-- Input area: a spacious text box (idle) that switches to a
+               listening treatment while recording. Mic + Submit on the right;
+               in listening mode they become Discard (X) + Keep (✓). -->
+          <div id="inputArea" class="input-area">
+            <div id="textInput" class="lexical-editor empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Text input" spellcheck="true" autocomplete="off" autocorrect="off" autocapitalize="sentences" aria-autocomplete="none" data-1p-ignore data-lpignore="true" data-form-type="other" data-protonpass-ignore="true" inputmode="text" data-placeholder="Message, dictate, or tap a snippet…"></div>
+            <div id="voiceWaveform" class="voice-waveform" aria-hidden="true"></div>
+            <div id="streamingVoiceStatus" class="muted" role="status" aria-live="polite" hidden></div>
+            <!-- Controls sit in a horizontal bar below the box (Gemini-style):
+                 attach pinned left, utility buttons + mic + send pinned right. -->
+            <div class="input-actions">
+              <!-- Idle controls. -->
+              <button id="attachButton" class="attach-button" type="button" title="Attach a file" aria-label="Attach a file">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <input id="fileInput" type="file" multiple hidden aria-hidden="true" />
+              <!-- Mode pill lives in the control bar's free middle space, next to
+                   attach. Tap label = cycle mode (Shift+Tab); caret = mode/effort
+                   sheet. Hidden when the focused window has no detected agent. -->
+              <div id="modeBar" class="mode-bar" hidden>
+                <button id="modeCycle" class="mode-pill" type="button" aria-label="Cycle agent mode">
+                  <span id="modeLabel" class="mode-pill-label">Mode</span>
+                  <span id="modeEffort" class="mode-pill-effort"></span>
+                </button>
+                <button id="modeMore" class="mode-pill-more" type="button" aria-label="Mode and effort options" title="Mode &amp; effort">⌄</button>
+              </div>
+              <!-- Right-aligned cluster: mic + send (and the listening swaps). -->
+              <div class="input-actions-right">
+                <div class="direct-key-picker">
+                  <button id="directKeysToggle" class="small-button direct-key-toggle" type="button" title="Terminal keys" aria-label="Terminal keys" aria-haspopup="true" aria-expanded="false">Keys</button>
+                  <div id="directKeysMenu" class="direct-keys-menu" hidden role="menu" aria-label="Terminal keys">
+                    <button type="button" data-key="Enter" class="direct-key" title="Enter" aria-label="Enter" role="menuitem">Ent</button>
+                    <button type="button" data-key="Escape" class="direct-key" title="Escape" aria-label="Escape" role="menuitem">Esc</button>
+                    <button type="button" data-key="C-c" class="direct-key danger" title="Control-C" aria-label="Control-C" role="menuitem">^C</button>
+                    <button type="button" data-key="C-z" class="direct-key danger" title="Control-Z" aria-label="Control-Z" role="menuitem">^Z</button>
+                    <button type="button" data-command="fg" class="direct-key" title="Run fg" aria-label="Run fg" role="menuitem">fg</button>
+                    <button type="button" data-key="Tab" class="direct-key" title="Tab" aria-label="Tab" role="menuitem">Tab</button>
+                    <button type="button" data-key="Up" class="direct-key" title="Up" aria-label="Up" role="menuitem">↑</button>
+                    <button type="button" data-key="BSpace" class="direct-key" title="Backspace (delete one char)" aria-label="Backspace" role="menuitem">⌫</button>
+                    <button type="button" data-key="C-u" class="direct-key" title="Delete to start of line" aria-label="Delete line" role="menuitem">⌫line</button>
+                    <button type="button" data-key="Down" class="direct-key" title="Down" aria-label="Down" role="menuitem">↓</button>
+                  </div>
+                </div>
+                <button id="clearText" class="small-button input-clear" type="button" title="Clear input" aria-label="Clear input">Clear</button>
+                <button id="streamingVoiceButton" class="voice-button" type="button" title="Live dictation (Free ASR)" aria-label="Live dictation (Free ASR)" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4"/></svg></button>
+                <button id="voiceButton" hidden class="voice-button legacy-dictation" type="button" title="Dictate" aria-label="Dictate into the message box">
+                  <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+                  <span id="voiceTitle" class="sr-only">Dictate</span>
+                  <small id="voiceSubtitle" class="sr-only">Tap to dictate into the message box</small>
+                </button>
+                <button id="submitText" class="small-button submit input-submit" type="button" title="Send" aria-label="Send">Send</button>
+                <!-- Listening controls (shown only while recording) -->
+                <button id="cancelVoice" class="icon-button voice-action cancel listen-only" type="button" title="Discard" aria-label="Discard recording">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button id="submitVoice" class="icon-button voice-action submit listen-only" type="button" title="Keep (transcribe into box)" aria-label="Keep recording">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="directorySheet" class="directory-sheet" hidden>
+      <button id="directoryBackdrop" class="directory-backdrop" type="button" aria-label="Close directory picker"></button>
+      <section class="directory-panel" role="dialog" aria-modal="true" aria-labelledby="directorySheetTitle">
+        <div class="directory-panel-header">
+          <h2 id="directorySheetTitle">Directories</h2>
+          <button id="closeDirectoryPicker" class="icon-button" type="button" title="Close">X</button>
+        </div>
+
+        <div class="directory-panel-actions">
+          <button id="refreshDirectoryPicker" class="small-button" type="button">Refresh</button>
+        </div>
+
+        <section id="directoryNavigator" class="directory-navigator" aria-label="Current directory">
+          <div class="directory-header">
+            <span>Dir</span>
+            <strong id="directoryPath">No window selected</strong>
+          </div>
+          <div id="directoryList" class="directory-list"></div>
+        </section>
+      </section>
+    </div>
+
+    <div id="fileBrowserSheet" class="directory-sheet" hidden>
+      <button id="fileBrowserBackdrop" class="directory-backdrop" type="button" aria-label="Close file browser"></button>
+      <section class="directory-panel file-browser-panel" role="dialog" aria-modal="true" aria-labelledby="fileBrowserSheetTitle">
+        <div class="directory-panel-header">
+          <div class="file-browser-heading">
+            <h2 id="fileBrowserSheetTitle">Files</h2>
+            <span>Current terminal directory</span>
+          </div>
+          <button id="closeFileBrowser" class="icon-button" type="button" title="Close" aria-label="Close file browser">X</button>
+        </div>
+
+        <div class="directory-panel-actions file-browser-actions">
+          <button id="fileBrowserUp" class="small-button" type="button" aria-label="Parent directory">Up</button>
+          <strong id="fileBrowserPath">No window selected</strong>
+          <button id="refreshFileBrowser" class="small-button" type="button">Refresh</button>
+        </div>
+
+        <div id="fileBrowserList" class="file-browser-list" aria-label="Files in current directory"></div>
+      </section>
+    </div>
+
+    <div id="pinsSheet" class="directory-sheet" hidden>
+      <button id="pinsBackdrop" class="directory-backdrop" type="button" aria-label="Close pinned artifacts"></button>
+      <section class="directory-panel" role="dialog" aria-modal="true" aria-labelledby="pinsSheetTitle">
+        <div class="directory-panel-header">
+          <h2 id="pinsSheetTitle">Pinned artifacts</h2>
+          <button id="closePinsSheet" class="icon-button" type="button" title="Close">X</button>
+        </div>
+
+        <div class="directory-panel-actions">
+          <button id="refreshPins" class="small-button" type="button">Refresh</button>
+        </div>
+
+        <div id="pinsList" class="pins-list" aria-label="Pinned artifacts"></div>
+      </section>
+    </div>
+
+    <div id="targetSheet" class="target-sheet" hidden>
+      <button id="targetBackdrop" class="target-backdrop" type="button" aria-label="Close target picker"></button>
+      <section class="target-panel" role="dialog" aria-modal="true" aria-labelledby="targetSheetTitle">
+        <div class="target-panel-header">
+          <h2 id="targetSheetTitle">Switch Target</h2>
+          <button id="closeTargetPicker" class="icon-button" type="button" title="Close">X</button>
+        </div>
+
+        <div class="target-panel-actions">
+          <button id="mobileRefreshTree" class="small-button" type="button">Refresh</button>
+        </div>
+
+        <label id="machinePicker" class="machine-picker" hidden>
+          <span>Machine</span>
+          <select id="machineSelect"></select>
+        </label>
+
+        <div class="session-management" aria-label="Create session">
+          <label class="session-name-field">
+            <span>New</span>
+            <input id="sessionNameInput" type="text" autocomplete="off" placeholder="new session name" />
+          </label>
+          <div class="session-actions">
+            <button id="createSession" class="small-button" type="button">New</button>
+          </div>
+        </div>
+
+        <div class="mobile-target-groups">
+          <section class="target-group">
+            <div id="mobileWindows" class="list mobile-list"></div>
+          </section>
+        </div>
+      </section>
+    </div>
+
+    <!-- Transcript view: every user prompt + assistant final response from
+         the agent's own JSONL, filtered to clean dialogue (no tool calls,
+         no system reminders). Centered modal, not a bottom sheet, so the
+         live snapshot stays visible behind the backdrop. -->
+    <div id="agentTranscriptSheet" class="agent-session-sheet" hidden>
+      <button id="agentTranscriptBackdrop" class="agent-session-backdrop" type="button" aria-label="Close transcript"></button>
+      <section class="agent-session-panel" role="dialog" aria-modal="true" aria-labelledby="agentTranscriptTitle">
+        <div class="agent-session-header">
+          <h2 id="agentTranscriptTitle">Transcript</h2>
+          <button id="closeAgentTranscript" class="icon-button" type="button" title="Close">X</button>
+        </div>
+        <div id="agentTranscriptMeta" class="agent-session-meta">Loading…</div>
+        <div id="agentTranscriptBody" class="agent-transcript-body"></div>
+      </section>
+    </div>
+
+    <div id="voiceSettingsSheet" class="settings-sheet" hidden>
+      <button id="voiceSettingsBackdrop" class="settings-backdrop" type="button" aria-label="Close voice settings"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="voiceSettingsTitle">
+        <div class="settings-panel-header">
+          <h2 id="voiceSettingsTitle">Voice settings</h2>
+          <button id="closeVoiceSettings" class="icon-button" type="button" title="Close">X</button>
+        </div>
+
+        <p class="settings-hint">For live dictation, choose Automatic, Doubao or WeChat in <a href="/speech-settings.html">Speech recognition settings</a>. The options below control OpenAI voice features.</p>
+
+        <label class="settings-field">
+          <span>Transcription (speech → text)</span>
+          <select id="voiceTranscribeModel"></select>
+        </label>
+
+        <label class="settings-field">
+          <span>Read-aloud model (text → speech)</span>
+          <select id="voiceSpeechModel"></select>
+        </label>
+
+        <label class="settings-field">
+          <span>Read-aloud voice</span>
+          <div class="settings-field-row">
+            <select id="voiceSpeechVoice"></select>
+            <button id="previewSpeechVoice" class="small-button voice-preview" type="button" data-source="voiceSpeechVoice" title="Play a sample" aria-label="Play a sample of this voice">▶ Sample</button>
+          </div>
+        </label>
+
+        <label class="settings-field">
+          <span>Realtime model</span>
+          <select id="voiceRealtimeModel"></select>
+        </label>
+
+        <label class="settings-field">
+          <span>Realtime voice</span>
+          <div class="settings-field-row">
+            <select id="voiceRealtimeVoice"></select>
+            <button id="previewRealtimeVoice" class="small-button voice-preview" type="button" data-source="voiceRealtimeVoice" title="Play a sample" aria-label="Play a sample of this voice">▶ Sample</button>
+          </div>
+        </label>
+
+        <div class="settings-actions">
+          <span id="voiceSettingsStatus" class="settings-status" role="status" aria-live="polite"></span>
+          <button id="saveVoiceSettings" class="small-button submit" type="button">Save</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Notification sound: chime when a window newly needs an answer / finishes.
+         Toggle on/off, pick a sound, preview it. Settings persist in localStorage
+         (per-device); see notifySoundAtom in app.js. -->
+    <div id="notifySettingsSheet" class="settings-sheet" hidden>
+      <button id="notifySettingsBackdrop" class="settings-backdrop" type="button" aria-label="Close notification settings"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="notifySettingsTitle">
+        <div class="settings-panel-header">
+          <h2 id="notifySettingsTitle">Notification sound</h2>
+          <button id="closeNotifySettings" class="icon-button" type="button" title="Close">X</button>
+        </div>
+
+        <p class="settings-hint">Off by default. Turn it on to play the Ubuntu notification sound when an agent newly needs you (a question or a finished turn). Limited to once every 10 seconds. Saved on this device.</p>
+
+        <label class="settings-field settings-field-inline">
+          <input id="notifySoundEnabled" type="checkbox" />
+          <span>Play a sound for new notifications</span>
+        </label>
+
+        <div class="settings-field-row">
+          <button id="previewNotifySound" class="small-button voice-preview" type="button" title="Play a sample" aria-label="Play a sample of the notification sound">▶ Sample sound</button>
+        </div>
+
+        <div class="settings-actions">
+          <span id="notifySettingsStatus" class="settings-status" role="status" aria-live="polite"></span>
+          <button id="saveNotifySettings" class="small-button submit" type="button">Save</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Detected file paths open in a new browser tab: markdown via
+         /api/file-view (rendered), other artifacts via /api/file-raw (named,
+         inline). See openFileViewer in app.js. -->
+
+    <!-- Snippet manager: add / edit / remove the frequently-used sentences shown
+         in the snippet bar. Rows are rendered by app.js. -->
+    <!-- Unified Insert picker: curated Snippets (editable) + auto-collected
+         Recent history. Both sections insert into the message box. -->
+    <div id="snippetSheet" class="settings-sheet" hidden>
+      <button id="snippetBackdrop" class="settings-backdrop" type="button" aria-label="Close insert picker"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="snippetTitle">
+        <div class="settings-panel-header">
+          <h2 id="snippetTitle">Insert</h2>
+          <button id="closeSnippets" class="icon-button" type="button" title="Close">X</button>
+        </div>
+        <p class="settings-hint">Tap any item to insert it into the message box; review, then Send. Snippets are curated; Recent is collected from what you've sent.</p>
+        <h3 class="insert-section-title">Snippets</h3>
+        <div id="snippetList" class="snippet-list"></div>
+        <div class="snippet-add">
+          <input id="snippetNewText" type="text" autocomplete="off" placeholder="New snippet text" />
+          <button id="snippetAdd" class="small-button submit" type="button">Add</button>
+        </div>
+        <h3 class="insert-section-title">Recent</h3>
+        <div id="historyList" class="history-list"></div>
+      </section>
+    </div>
+
+    <!-- Mode & effort sheet: per-agent. Mode buttons cycle/jump via Shift+Tab;
+         effort (Claude) drives the in-TUI /effort slider. Populated by app.js
+         from the focused window's agentType + parsed current state. -->
+    <div id="modeSheet" class="settings-sheet" hidden>
+      <button id="modeBackdrop" class="settings-backdrop" type="button" aria-label="Close mode options"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="modeSheetTitle">
+        <div class="settings-panel-header">
+          <h2 id="modeSheetTitle">Mode &amp; effort</h2>
+          <button id="closeMode" class="icon-button" type="button" title="Close">X</button>
+        </div>
+        <p class="settings-hint" id="modeSheetHint">Switch the agent's permission mode. Effort changes the model's reasoning level.</p>
+        <h3 class="insert-section-title">Mode</h3>
+        <div id="modeOptions" class="mode-options"></div>
+        <div id="effortSection" hidden>
+          <h3 class="insert-section-title">Effort</h3>
+          <div id="effortOptions" class="mode-options"></div>
+        </div>
+        <span id="modeStatus" class="settings-status" role="status" aria-live="polite"></span>
+      </section>
+    </div>
+
+    <!-- Duplicate window: review/adjust the new window's title and start command
+         before creating. Pre-filled from the source window by app.js. -->
+    <div id="duplicateSheet" class="settings-sheet" hidden>
+      <button id="duplicateBackdrop" class="settings-backdrop" type="button" aria-label="Cancel duplicate"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="duplicateTitle">
+        <div class="settings-panel-header">
+          <h2 id="duplicateTitle">Duplicate window</h2>
+          <button id="closeDuplicate" class="icon-button" type="button" title="Cancel">X</button>
+        </div>
+        <p class="settings-hint">A new window opens in the same directory (<span id="duplicateCwd" class="duplicate-cwd"></span>). Adjust the title and start command if you like — leave the command empty for a plain shell.</p>
+        <label class="settings-field">
+          <span>Window title</span>
+          <input id="duplicateName" type="text" autocomplete="off" placeholder="window title" />
+        </label>
+        <label class="settings-field">
+          <span>Start command</span>
+          <input id="duplicateCommand" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="(none — plain shell)" />
+        </label>
+        <div class="settings-actions">
+          <span id="duplicateStatus" class="settings-status" role="status" aria-live="polite"></span>
+          <button id="confirmDuplicate" class="small-button submit" type="button">Create</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- "New branch" sheet (More -> New branch). Shown only when the current
+         window is a bare-repo-backed git worktree. Creates a new worktree+branch
+         (sibling dir named after the branch) and opens a window in it, with the
+         start command prefilled from the current window like Duplicate. -->
+    <div id="newBranchSheet" class="settings-sheet" hidden>
+      <button id="newBranchBackdrop" class="settings-backdrop" type="button" aria-label="Cancel new branch"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="newBranchTitle">
+        <div class="settings-panel-header">
+          <h2 id="newBranchTitle">New branch</h2>
+          <button id="closeNewBranch" class="icon-button" type="button" title="Cancel">X</button>
+        </div>
+        <p class="settings-hint">Creates a git worktree for a new branch (a sibling directory off <span id="newBranchFrom" class="duplicate-cwd"></span>) and opens a window in it. The start command is prefilled from this window — leave it empty for a plain shell.</p>
+        <label class="settings-field">
+          <span>New branch name</span>
+          <input id="newBranchName" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="e.g. feature-x" />
+        </label>
+        <label class="settings-field">
+          <span>Start command</span>
+          <input id="newBranchCommand" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="(none — plain shell)" />
+        </label>
+        <div class="settings-actions">
+          <span id="newBranchStatus" class="settings-status" role="status" aria-live="polite"></span>
+          <button id="confirmNewBranch" class="small-button submit" type="button">Create</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- AskUserQuestion overlay: user-triggered (More -> Answer question). Renders
+         Claude's question(s) as tappable radio/checkbox cards + a free-text path,
+         and drives the tmux TUI to apply the answer. Built by app.js. -->
+    <div id="askSheet" class="settings-sheet" hidden>
+      <button id="askBackdrop" class="settings-backdrop" type="button" aria-label="Close question"></button>
+      <section class="ask-panel" role="dialog" aria-modal="true" aria-labelledby="askTitle">
+        <div class="settings-panel-header">
+          <h2 id="askTitle">Answer question</h2>
+          <button id="closeAsk" class="icon-button" type="button" title="Close">X</button>
+        </div>
+        <div id="askTabs" class="ask-tabs" aria-hidden="true"></div>
+        <div id="askBody" class="ask-body"></div>
+        <div id="askStatus" class="settings-status" role="status" aria-live="polite"></div>
+      </section>
+    </div>
+
+    <script src="/app.js" type="module"></script>
+  </body>
+</html>

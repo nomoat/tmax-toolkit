@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <title>Sessions · __APP_TITLE__</title>
+    <script>
+      try {
+        var t = JSON.parse(localStorage.getItem("tmux-mobile-theme") || "{}").theme || "auto";
+        var dark = t === "dark" || (t === "auto" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.dataset.theme = dark ? "" : "kami";
+      } catch (e) {
+        document.documentElement.dataset.theme = "kami";
+      }
+    </script>
+    <!-- Reuse the main app's stylesheet for theme tokens (colors / fonts /
+         text-input chrome) and then layer the Command Center's own layout
+         rules on top. Keeps the two views visually consistent without
+         coupling their structure. -->
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/command-center.css" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="stylesheet" href="/paper-theme.css?v=1" />
+</head>
+  <body class="command-center-body">
+    <main class="cc-shell">
+      <header class="cc-topbar">
+        <div class="cc-title-block">
+          <div class="cc-brand" aria-label="T-MAX">
+            <img class="cc-logo-mark" src="/icon-192.png" alt="" aria-hidden="true" />
+            <h1 class="cc-title">T-MAX</h1>
+          </div>
+          <span id="ccStatus" class="cc-status" aria-live="polite">Loading…</span>
+        </div>
+        <a class="cc-icon-button" href="/drafts" title="Drafts" aria-label="Drafts"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></a>
+        <div class="cc-icon-button cc-card-jump" title="Jump to card">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+          <select id="ccCardJump" aria-label="Jump to card" disabled>
+            <option value="">Jump to card</option>
+          </select>
+        </div>
+        <button id="ccRefresh" class="cc-icon-button" type="button" title="Refresh" aria-label="Refresh agents">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        </button>
+        <details id="ccMoreMenu" class="cc-more">
+          <summary class="cc-icon-button" title="More" aria-label="More options">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
+          </summary>
+          <div class="cc-more-panel" role="menu">
+            <button id="ccStartAgentOpen" class="cc-more-item" type="button" role="menuitem">Start agent</button>
+            <a id="ccTemporaryTerminal" class="cc-more-item" href="/temporary-terminals" role="menuitem">Temporary terminal</a>
+            <button id="ccCardSearchOpen" class="cc-more-item" type="button" role="menuitem">Search cards</button>
+            <a class="cc-more-item" href="/reports" role="menuitem">Progress reports</a>
+            <a class="cc-more-item" href="/notification-settings.html" role="menuitem">Notifications</a>
+            <a class="cc-more-item" href="/speech-settings.html" role="menuitem">Settings</a>
+            <button id="ccPinsOpen" class="cc-more-item" type="button" role="menuitem">Saved files (legacy)</button>
+            <label class="cc-more-control" for="ccSort">
+              <span class="cc-more-control-label">Sort cards</span>
+              <select id="ccSort" class="cc-sort-select" aria-label="Sort cards">
+                <option value="current">Current order</option>
+                <option value="recent">Recent activity</option>
+              </select>
+            </label>
+            <div class="cc-sort-hint">Starred cards always first</div>
+            <div class="cc-more-control" role="group" aria-label="Theme">
+              <span class="cc-more-control-label">Theme</span>
+              <div class="cc-theme-options">
+                <button class="cc-theme-option" type="button" data-cc-theme="auto" aria-pressed="false">Auto</button>
+                <button class="cc-theme-option" type="button" data-cc-theme="kami" aria-pressed="false">Light</button>
+                <button class="cc-theme-option" type="button" data-cc-theme="dark" aria-pressed="false">Dark</button>
+              </div>
+            </div>
+            <div class="cc-more-control" role="group" aria-label="Font size">
+              <span class="cc-more-control-label">Font</span>
+              <div class="cc-font-controls">
+                <button id="ccFontDecrease" class="cc-font-button" type="button" aria-label="Smaller Command Center font">A-</button>
+                <span id="ccFontSizeValue" class="cc-font-value" aria-live="polite">13</span>
+                <button id="ccFontIncrease" class="cc-font-button" type="button" aria-label="Larger Command Center font">A+</button>
+              </div>
+            </div>
+            <a id="ccBackToApp" class="cc-more-item" href="/app" role="menuitem">Main app</a>
+            <a class="cc-more-item" href="/auth/logout" role="menuitem">Logout</a>
+          </div>
+        </details>
+      </header>
+
+      <!-- Machine filters; sorting lives in the More menu. -->
+      <section class="cc-controls">
+        <div id="ccFilterRow" class="cc-filter-row" role="toolbar" aria-label="Filter agents"></div>
+
+      </section>
+
+      <section id="ccList" class="cc-list" aria-label="Active agent sessions"></section>
+    </main>
+
+    <div id="ccToast" class="cc-toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
+    <div id="ccInteractSheet" class="settings-sheet" hidden>
+      <button id="ccInteractBackdrop" class="settings-backdrop" type="button" aria-label="Close interact"></button>
+      <section class="settings-panel cc-interact-panel" role="dialog" aria-modal="true" aria-labelledby="ccInteractTitle">
+        <div class="settings-panel-header">
+          <h2 id="ccInteractTitle">Interact</h2>
+          <button id="ccInteractClose" class="icon-button" type="button" title="Close" aria-label="Close">X</button>
+        </div>
+        <div id="ccInteractTarget" class="cc-interact-target"></div>
+        <div class="composer cc-interact-composer">
+          <div id="ccInteractSnippetBar" class="snippet-bar" aria-label="Snippets">
+            <div id="ccInteractSnippetChips" class="snippet-chips"></div>
+            <button id="ccInteractManageSnippets" class="icon-button snippet-manage" type="button" title="Snippets & recent" aria-label="Snippets and recent">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            </button>
+          </div>
+          <div id="ccInteractInputArea" class="input-area">
+            <div id="ccInteractInput" class="lexical-editor empty" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Text input" spellcheck="true" autocomplete="off" autocorrect="off" autocapitalize="sentences" aria-autocomplete="none" data-1p-ignore data-lpignore="true" data-form-type="other" data-protonpass-ignore="true" inputmode="text" data-placeholder="Message…"></div>
+            <div id="ccInteractVoiceWaveform" class="voice-waveform" aria-hidden="true"></div>
+            <div class="input-actions">
+              <button id="ccInteractAttachButton" class="attach-button" type="button" title="Attach files, or drop them into the message box" aria-label="Attach a file">
+                <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+              </button>
+              <input id="ccInteractFileInput" type="file" multiple hidden aria-hidden="true" />
+              <span id="ccInteractStatus" class="settings-status cc-interact-status" role="status" aria-live="polite"></span>
+              <div class="input-actions-right">
+                <div class="direct-key-picker">
+                  <button id="ccInteractKeysToggle" class="small-button direct-key-toggle" type="button" title="Terminal keys" aria-label="Terminal keys" aria-haspopup="true" aria-expanded="false">Keys</button>
+                  <div id="ccInteractKeys" class="direct-keys-menu cc-interact-keys" hidden role="menu" aria-label="Terminal keys">
+                    <button type="button" data-interact-key="Enter" class="direct-key" title="Enter" aria-label="Enter" role="menuitem">Ent</button>
+                    <button type="button" data-interact-key="Escape" class="direct-key" title="Escape" aria-label="Escape" role="menuitem">Esc</button>
+                    <button type="button" data-interact-key="C-c" class="direct-key danger" title="Control-C" aria-label="Control-C" role="menuitem">^C</button>
+                    <button type="button" data-interact-key="C-z" class="direct-key danger" title="Control-Z" aria-label="Control-Z" role="menuitem">^Z</button>
+                    <button type="button" data-interact-command="fg" class="direct-key" title="Run fg" aria-label="Run fg" role="menuitem">fg</button>
+                    <button type="button" data-interact-key="Tab" class="direct-key" title="Tab" aria-label="Tab" role="menuitem">Tab</button>
+                    <button type="button" data-interact-key="Up" class="direct-key" title="Up" aria-label="Up" role="menuitem">↑</button>
+                    <button type="button" data-interact-key="BSpace" class="direct-key" title="Backspace (delete one char)" aria-label="Backspace" role="menuitem">⌫</button>
+                    <button type="button" data-interact-key="C-u" class="direct-key" title="Delete to start of line" aria-label="Delete line" role="menuitem">⌫line</button>
+                    <button type="button" data-interact-key="Down" class="direct-key" title="Down" aria-label="Down" role="menuitem">↓</button>
+                  </div>
+                </div>
+                <button id="ccInteractClear" class="small-button input-clear" type="button" title="Clear input" aria-label="Clear input">Clear</button>
+                <button id="ccInteractStreamingVoice" class="voice-button" type="button" title="Live dictation (Free ASR)" aria-label="Live dictation (Free ASR)" aria-pressed="false"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4"/></svg></button>
+                <button id="ccInteractVoiceButton" hidden class="voice-button legacy-dictation" type="button" title="Dictate" aria-label="Dictate into the message box">
+                  <svg class="icon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+                </button>
+                <button id="ccInteractSend" class="small-button submit input-submit" type="button" title="Send" aria-label="Send">Send</button>
+                <button id="ccInteractCancelVoice" class="icon-button voice-action cancel listen-only" type="button" title="Discard" aria-label="Discard recording">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <button id="ccInteractSubmitVoice" class="icon-button voice-action submit listen-only" type="button" title="Keep (transcribe into box)" aria-label="Keep recording">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div id="ccSnippetSheet" class="settings-sheet" hidden>
+      <button id="ccSnippetBackdrop" class="settings-backdrop" type="button" aria-label="Close insert picker"></button>
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="ccSnippetTitle">
+        <div class="settings-panel-header">
+          <h2 id="ccSnippetTitle">Insert</h2>
+          <button id="ccSnippetClose" class="icon-button" type="button" title="Close" aria-label="Close">X</button>
+        </div>
+        <p class="settings-hint">Tap any item to insert it into the message box; review, then Send. Snippets are curated; Recent is collected from what you've sent.</p>
+        <h3 class="insert-section-title">Snippets</h3>
+        <div id="ccSnippetList" class="snippet-list"></div>
+        <div class="snippet-add">
+          <input id="ccSnippetNewText" type="text" autocomplete="off" placeholder="New snippet text" />
+          <button id="ccSnippetAdd" class="small-button submit" type="button">Add</button>
+        </div>
+        <h3 class="insert-section-title">Recent</h3>
+        <div id="ccHistoryList" class="history-list"></div>
+      </section>
+    </div>
+
+    <div id="ccStartAgentSheet" class="settings-sheet" hidden>
+      <button id="ccStartAgentBackdrop" class="settings-backdrop" type="button" aria-label="Close start agent"></button>
+      <section class="settings-panel cc-start-agent-panel" role="dialog" aria-modal="true" aria-labelledby="ccStartAgentTitle">
+        <div class="settings-panel-header">
+          <h2 id="ccStartAgentTitle">Start Agent</h2>
+          <button id="ccStartAgentClose" class="icon-button" type="button" title="Close" aria-label="Close">X</button>
+        </div>
+
+        <div class="cc-start-agent-form">
+          <label class="cc-start-agent-field">
+            <span>Machine</span>
+            <select id="ccStartAgentMachine"></select>
+          </label>
+
+          <div class="cc-start-agent-field">
+            <span>Agent</span>
+            <div class="cc-agent-kind-options" role="group" aria-label="Agent">
+              <button class="cc-agent-kind-option" type="button" data-start-agent-kind="codex" aria-pressed="true">Codex</button>
+              <button class="cc-agent-kind-option" type="button" data-start-agent-kind="claude" aria-pressed="false">Claude Code</button>
+              <button class="cc-agent-kind-option" type="button" data-start-agent-kind="pi" aria-pressed="false">Pi</button>
+            </div>
+          </div>
+
+          <div class="cc-start-agent-field">
+            <span>Runtime</span>
+            <div class="cc-agent-kind-options cc-start-mux-options" role="group" aria-label="Runtime">
+              <button class="cc-agent-kind-option cc-start-mux-option" type="button" data-start-agent-mux="tmux" aria-pressed="false">TMUX</button>
+              <button class="cc-agent-kind-option cc-start-mux-option" type="button" data-start-agent-mux="rmux" aria-pressed="false">RMUX</button>
+            </div>
+          </div>
+
+          <label class="cc-start-agent-field">
+            <span>Session</span>
+            <input id="ccStartAgentSessionName" type="text" autocomplete="off" placeholder="auto" />
+          </label>
+
+          <label class="cc-start-agent-field">
+            <span>Directory</span>
+            <div class="cc-start-agent-path-row">
+              <input id="ccStartAgentPath" type="text" autocomplete="off" spellcheck="false" />
+              <button id="ccStartAgentLoadDir" class="small-button" type="button">Load</button>
+            </div>
+          </label>
+        </div>
+
+        <section id="ccStartAgentDirectoryNavigator" class="directory-navigator cc-start-agent-directory" aria-label="Start agent directory">
+          <div class="directory-header">
+            <span>Dir</span>
+            <strong id="ccStartAgentDirectoryPath">Select a machine</strong>
+          </div>
+          <div id="ccStartAgentDirectoryList" class="directory-list"></div>
+        </section>
+
+        <p id="ccStartAgentStatus" class="settings-status cc-start-agent-status" role="status" aria-live="polite"></p>
+
+        <div class="cc-start-agent-actions">
+          <button id="ccStartAgentCancel" class="small-button" type="button">Cancel</button>
+          <button id="ccStartAgentSubmit" class="small-button submit" type="button">Start</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="ccDeleteDialog" class="cc-alert-overlay" hidden>
+      <div id="ccDeleteBackdrop" class="cc-alert-backdrop" aria-hidden="true"></div>
+      <section class="cc-alert-dialog" role="alertdialog" aria-modal="true" aria-labelledby="ccDeleteTitle" aria-describedby="ccDeleteDescription">
+        <h2 id="ccDeleteTitle">Complete and delete window?</h2>
+        <p id="ccDeleteDescription" class="cc-alert-description">This kills the tmux window and all panes inside it.</p>
+        <div id="ccDeleteTarget" class="cc-alert-target"></div>
+        <p id="ccDeleteStatus" class="cc-alert-status" role="status" aria-live="polite"></p>
+        <div class="cc-alert-actions">
+          <button id="ccDeleteCancel" class="small-button" type="button">Cancel</button>
+          <button id="ccDeleteConfirm" class="small-button danger" type="button">Delete window</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="ccResponseFullscreen" class="cc-response-fullscreen" hidden>
+      <button id="ccResponseFullscreenBackdrop" class="cc-response-fullscreen-backdrop" type="button" aria-label="Close response"></button>
+      <section class="cc-response-fullscreen-panel" role="dialog" aria-modal="true" aria-labelledby="ccResponseFullscreenTitle">
+        <header class="cc-response-fullscreen-header">
+          <div class="cc-response-fullscreen-title-block">
+            <h2 id="ccResponseFullscreenTitle">Last response</h2>
+            <span id="ccResponseFullscreenMeta"></span>
+          </div>
+          <button id="ccResponseFullscreenClose" class="cc-card-action" type="button" title="Close" aria-label="Close">X</button>
+        </header>
+        <div id="ccResponseFullscreenBody" class="cc-section-text cc-response-fullscreen-body"></div>
+      </section>
+    </div>
+
+    <div id="ccTranscriptSheet" class="cc-response-fullscreen cc-transcript-sheet" hidden>
+      <button id="ccTranscriptBackdrop" class="cc-response-fullscreen-backdrop" type="button" aria-label="Close transcript"></button>
+      <section class="cc-response-fullscreen-panel cc-transcript-panel" role="dialog" aria-modal="true" aria-labelledby="ccTranscriptTitle">
+        <header class="cc-response-fullscreen-header">
+          <div class="cc-response-fullscreen-title-block">
+            <h2 id="ccTranscriptTitle">Transcript</h2>
+            <span id="ccTranscriptMeta"></span>
+          </div>
+          <button id="ccTranscriptClose" class="cc-card-action" type="button" title="Close" aria-label="Close">X</button>
+        </header>
+        <div id="ccTranscriptBody" class="cc-transcript-body"></div>
+      </section>
+    </div>
+
+    <div id="ccPinsSheet" class="cc-response-fullscreen cc-transcript-sheet" hidden>
+      <button id="ccPinsBackdrop" class="cc-response-fullscreen-backdrop" type="button" aria-label="Close pinned artifacts"></button>
+      <section class="cc-response-fullscreen-panel cc-transcript-panel" role="dialog" aria-modal="true" aria-labelledby="ccPinsTitle">
+        <header class="cc-response-fullscreen-header">
+          <div class="cc-response-fullscreen-title-block">
+            <h2 id="ccPinsTitle">Saved files (legacy)</h2>
+            <span id="ccPinsMeta"></span>
+          </div>
+          <button id="ccPinsClose" class="cc-card-action" type="button" title="Close" aria-label="Close">X</button>
+        </header>
+        <div id="ccPinsBody" class="cc-transcript-body cc-pins-body"></div>
+      </section>
+    </div>
+
+    <div id="ccCardSearchSheet" class="cc-card-search-sheet" hidden>
+      <button id="ccCardSearchBackdrop" class="cc-card-search-backdrop" type="button" aria-label="Close card search"></button>
+      <section class="cc-card-search-panel" role="dialog" aria-modal="true" aria-labelledby="ccCardSearchTitle">
+        <header class="cc-card-search-header">
+          <h2 id="ccCardSearchTitle">Cards</h2>
+          <button id="ccCardSearchClose" class="cc-card-action" type="button" title="Close" aria-label="Close">X</button>
+        </header>
+        <input id="ccCardSearchInput" class="cc-card-search-input" type="search" autocomplete="off" spellcheck="false" aria-label="Search cards" />
+        <div id="ccCardSearchResults" class="cc-card-search-results" role="listbox" aria-label="Matching cards"></div>
+      </section>
+    </div>
+
+    <script src="/command-center.js" type="module"></script>
+  </body>
+</html>

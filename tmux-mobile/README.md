@@ -1,0 +1,665 @@
+# T-MAX
+
+A mobile browser UI for selecting tmux sessions and windows, then reading snapshots or sending voice commands without a terminal emulator.
+
+The canonical runtime is the hosted Controller at `https://eng.xyznot.com`.
+`https://eng.impo.ai` remains supported on the same server. Both names share account, machine and archive identities; existing Connector credentials need no new login.
+
+External Agents can control machines and sessions through the super-user
+[MCP endpoint](docs/mcp.md) at `https://eng.xyznot.com/mcp` (Streamable HTTP).
+Browsers connect to that HTTPS endpoint; every machine runs an outbound
+Connector that brokers tmux/rmux commands. A local server mode remains in the
+codebase for isolated development and tests, but it is not the deployed access
+path and should not be published through Tailscale.
+
+## Use the hosted Controller
+
+Open `https://eng.xyznot.com`. To attach another machine, follow
+[docs/join-network.md](docs/join-network.md); the machine needs no inbound web
+server or tailnet route.
+
+## Hosted controller
+
+> **Want to join an already-running controller (e.g. https://eng.xyznot.com)?**
+> Skip everything below — see [docs/join-network.md](docs/join-network.md)
+> for the one-command device-login flow.
+
+Hosted mode removes the Tailscale requirement for browser access. The same
+A short screen recording of the core flow (window switching, snippet send, PR
+links, the smart content viewer rendering a Mermaid diagram) is at
+[`docs/demo.mp4`](docs/demo.mp4). A captioned walkthrough focused on the
+AskUserQuestion answer flow, quick snippets, and the notification sound is at
+[`docs/demo-walkthrough.mp4`](docs/demo-walkthrough.mp4).
+
+`server.mjs` runs in three roles, chosen by flags:
+
+- local: `npm start`, a development/test-only single-machine mode.
+- controller: `node server.mjs --controller`, the hosted service that
+  serves the UI, calls OpenAI, and brokers tmux commands.
+- agent: `node server.mjs --register <controller-url>`, the local process that
+  opens an outbound WebSocket to the controller and executes tmux-compatible
+  mux commands.
+
+The browser reaches the Cloud Run controller over HTTPS; the controller reaches
+this machine over the outbound WebSocket opened by the agent, so this machine
+does not need an inbound port or Tailscale.
+
+```
+browser ──HTTPS──► Cloud Run controller ──WebSocket──► agent ──► local tmux/rmux
+```
+
+Controller mode supports multiple Google users. Browser access uses the web
+Google OAuth client. Agent registration uses a controller-mediated Google
+device-login flow, then the controller issues a local agent token scoped to that
+Google user.
+
+```bash
+export GOOGLE_OAUTH_CLIENT_ID='...apps.googleusercontent.com'
+export GOOGLE_OAUTH_CLIENT_SECRET='...'
+export GOOGLE_DEVICE_CLIENT_ID='...apps.googleusercontent.com'
+export GOOGLE_DEVICE_CLIENT_SECRET='...'
+export GOOGLE_OAUTH_REDIRECT_URI='https://YOUR-CLOUD-RUN-URL/auth/google/callback'
+export ALLOW_ALL_GOOGLE_USERS='0'
+export OPENAI_API_KEY='sk-...'
+export OPENAI_SECRET_NAME='tmux-mobile-openai-api-key'
+export SESSION_SECRET="$(openssl rand -hex 32)"
+```
+
+This deployment is private. `config/access-control.json` permits only
+`owner@example.com` to sign in, obtain a native session or register a Connector.
+The policy is checked again for every signed session/agent token, including old
+cookies, native Bearer tokens and browser handoff tickets. Domain allowlists,
+`ALLOW_ALL_GOOGLE_USERS=1` and legacy shared secrets cannot override it. Machine
+shares to `srp.one` have been removed.
+
+The owner's existing `mini` Connector retains its `legacy@example.com` archive identity,
+restricted to its exact stable agent UUID. This exception grants neither browser
+login nor new device authorization/registration. Other accounts, including the
+retired Huang Yuxi and huige Connectors, cannot reconnect. The online machine
+registry is held in memory; there is no independent database registration row to
+delete. Historical content is not erased by an access-policy change.
+
+The controller can still be tested with a separate, explicitly selected access
+file; multi-user tests use `test/fixtures/multi-user-access.json`. Production uses
+the checked-in private policy and fails startup on invalid policy configuration.
+
+Controller mode requires `OPENAI_API_KEY` because voice transcription, target
+summaries, and realtime audio reads all call OpenAI from the controller. Store
+the key in Secret Manager and grant the Cloud Run runtime service account access:
+
+```bash
+gcloud secrets describe "${OPENAI_SECRET_NAME}" >/dev/null 2>&1 || \
+  gcloud secrets create "${OPENAI_SECRET_NAME}" --replication-policy=automatic
+printf '%s' "${OPENAI_API_KEY}" | \
+  gcloud secrets versions add "${OPENAI_SECRET_NAME}" --data-file=-
+
+PROJECT_NUMBER="$(gcloud projects describe "$(gcloud config get-value project)" --format='value(projectNumber)')"
+gcloud secrets add-iam-policy-binding "${OPENAI_SECRET_NAME}" \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role='roles/secretmanager.secretAccessor'
+```
+
+Deploy the controller:
+
+```bash
+gcloud run deploy tmux-mobile-controller \
+  --source . \
+  --region us-central1 \
+  --no-invoker-iam-check \
+  --max-instances=1 \
+  --timeout=3600 \
+  --set-env-vars "\
+GOOGLE_OAUTH_CLIENT_ID=${GOOGLE_OAUTH_CLIENT_ID},\
+GOOGLE_OAUTH_CLIENT_SECRET=${GOOGLE_OAUTH_CLIENT_SECRET},\
+GOOGLE_DEVICE_CLIENT_ID=${GOOGLE_DEVICE_CLIENT_ID},\
+GOOGLE_DEVICE_CLIENT_SECRET=${GOOGLE_DEVICE_CLIENT_SECRET},\
+GOOGLE_OAUTH_REDIRECT_URI=${GOOGLE_OAUTH_REDIRECT_URI},\
+ALLOW_ALL_GOOGLE_USERS=${ALLOW_ALL_GOOGLE_USERS},\
+SESSION_SECRET=${SESSION_SECRET}" \
+  --set-secrets "OPENAI_API_KEY=${OPENAI_SECRET_NAME}:latest"
+```
+
+Cloud Run must allow HTTP to reach the app so normal browsers and the local
+agent can connect. App-owned Google OAuth is the browser security boundary, and
+controller-issued agent tokens are required for agent WebSocket registration.
+The controller keeps agent connections in memory, so keep `--max-instances=1`.
+
+If source deploy is blocked by Cloud Build permissions, build and push the
+Dockerfile locally, then rerun the same `gcloud run deploy` command with
+`--image <artifact-registry-image>` instead of `--source .`.
+
+After deploy, copy the service URL and start the local agent:
+
+```bash
+node server.mjs --register https://YOUR-CLOUD-RUN-URL
+```
+
+If no token is stored yet, the agent prints a Google device-login URL and user
+code, then stores the controller-issued token in
+`~/.config/tmux-mobile/agent.json`. Future starts reuse the stored token. Add
+`--login` only when you want to force a fresh login.
+
+Set `AGENT_MACHINE` only if you need to override the machine id shown in the UI;
+otherwise the agent uses the host name. To register multiple machines for the
+same user, run the device login on each machine with the same Google account.
+
+By default the agent controls `tmux`. To make newly-created sessions/windows use
+RMUX instead, install `rmux` and start the connector with:
+
+```bash
+TMUX_MOBILE_MUX=rmux node server.mjs --register https://YOUR-CLOUD-RUN-URL
+```
+
+Existing tmux sessions are not migrated; new app-created agent sessions go to
+the selected mux.
+
+Open the Cloud Run URL in a browser and sign in with an allowed Google account.
+
+### Local controller test
+
+Run the local end-to-end test:
+
+```bash
+npm test
+```
+
+It starts a controller with a fake Google OAuth server, signs in Workspace,
+consumer, and super-admin browser users, performs device login for multiple
+agents, verifies owner-only isolation plus super-admin visibility, creates real
+tmux sessions through the controller API, sends text into panes, and verifies
+captured pane output comes back through the correct user route.
+
+### Controller endpoints
+
+- `GET /api/runtime` → `{ "mode": "local" | "hub" }`.
+- `GET /api/machines` → registered machines and online status.
+- Every other `/api/*` call routes to the machine id returned by
+  `GET /api/machines` in the `x-machine-id` header (or `?machineId=`). The raw
+  hostname is still returned as `machineId`/`hostname` for display; the routed
+  `id` stays unambiguous when two visible users register the same hostname. With
+  exactly one visible machine online the hub auto-selects it.
+
+### Terminal client
+
+There is also a small terminal client that uses the same browser HTTP API as the
+web app. It does not talk directly to agent WebSockets.
+
+```bash
+npm run terminal
+npm run terminal -- https://YOUR-CLOUD-RUN-URL
+```
+
+By default this connects to `https://eng.xyznot.com`; pass a URL to point it at
+another controller. In controller mode it starts the same Google
+device-login flow as connector registration, but stores a separate
+browser-session bearer token at `~/.config/tmux-mobile/terminal.json`. Machine
+visibility is the same as the web app: the configured super-admin sees every
+machine and every other account sees only its own machines.
+
+Useful commands inside the terminal client:
+
+```text
+machines      list visible machines
+all           list windows across every visible machine
+use 2         select a machine
+tree          list windows on the selected machine
+open 4        open a window and show its active pane
+send continue paste text and press Enter
+type /btw ... paste text without Enter
+key C-c       send a direct key
+agents        list detected Codex/Claude windows across machines
+agent 1       open an agent window
+```
+
+For a card-style terminal dashboard, use the Rust TUI:
+
+```bash
+npm run terminal:tui
+npm run terminal:tui -- https://YOUR-CLOUD-RUN-URL
+npm run terminal:tui -- --login
+```
+
+It uses the same device-login session file as the plain terminal client
+(`~/.config/tmux-mobile/terminal.json`) and renders the Command Center feed as
+keyboard-navigable cards, ordered like the web Command Center: starred cards
+first, then most-recent activity. Use `h/j/k/l` or arrow keys to move, `s` to
+star/unstar the selected card, `r` to interact/send text, `t` to list the
+selected transcript, `c` for a compact conversation list, `m` to filter by
+machine, `/` to filter by text, `d` to toggle dark/light, `u` to refresh, `?`
+for the full shortcut list, and `q` to quit. Stars persist in the same session
+file. Dark mode is the default; use
+`npm run terminal:tui -- --theme light` to start in light mode.
+
+### Code layout
+
+- `server.mjs` — entry point and HTTP/API handlers (shared by all modes).
+- `lib/backend.mjs` — the `Backend` seam: every local op (mux/readdir) goes
+  through it, selected per request via `AsyncLocalStorage`. Local mode uses the
+  in-process backend; the hub injects a remote one.
+- `lib/protocol.mjs` — the hub↔agent wire protocol and mux command allowlist.
+- `lib/hub.mjs` — agent registry, command broker, per-machine remote backend.
+- `lib/agent.mjs` — outbound connection, request serving, reconnect.
+- `lib/ask-question.mjs` / `lib/ask-question-keys.mjs` — parse Claude's
+  AskUserQuestion TUI, and compute the keystrokes that answer it.
+- `Dockerfile` — Cloud Run controller image.
+
+### Window operations
+
+The topbar **More** menu has window management: **New window** (fresh window in
+the current session), **Duplicate window** (opens a
+confirmation pre-filled with the source window's title and start command — and
+its working directory — so you can adjust before creating; the new window opens
+in the same cwd and switches to it. The suggested command is `pane_start_command`
+if the window was launched with one, else the running program name, else a plain
+shell), and **Close window** (kills the
+window after a confirmation). Server side: `POST /api/windows {sessionId}` to
+create, `POST /api/windows {duplicateFrom: windowId}` to duplicate, and
+`DELETE /api/windows {windowId}` to close (refuses to kill the last window in a
+session).
+
+### Answering AskUserQuestion prompts
+
+Claude Code's `AskUserQuestion` renders an interactive TUI (a tab bar, `❯`
+cursor, checkboxes for multi-select, a free-form "Type something" escape, and a
+review screen) that's awkward to drive key-by-key from a phone. An overlay turns
+it into tappable cards. Open it two ways: the topbar **More → Answer question**,
+or **hold the pane** (the gesture you reach for when you spot Claude waiting).
+The hold fires after ~500ms held still and cancels on scroll/selection, so it
+never shadows tapping a link.
+
+On touch the hold is **two fingers** — a single-finger press-and-hold is the
+phone's own gesture for selecting/copying text, so it's left completely alone
+(no more overlay popping over text you're trying to copy). On desktop a normal
+left-button hold works, since there's no native finger-selection to compete with
+and drag-select cancels the hold anyway.
+
+The same overlay also handles Claude's **exit-plan-mode** confirmation ("Claude
+has written up a plan and is ready to execute. Would you like to proceed?") — a
+numbered single-select with a "Tell Claude what to change" free-form option. It's
+detected separately (no tab bar / no AskUserQuestion footer) but parses into the
+same single-select shape, so the cards + the keystroke driver work unchanged. It
+also counts as `waitingForInput`, so a plan-waiting window shows the ❓ chip and
+the needs-attention indicators.
+
+It is **user-triggered and on-demand** — nothing scans for prompts in the
+background. When you trigger it, the server captures the active pane *once*,
+parses the prompt (`lib/ask-question.mjs`), and renders it: one chip per question
+(✓ = answered), the question text, and an option card each — radio-style for
+single-select, checkboxes for multi-select — plus a free-form input.
+
+Choosing an answer always shows an **inline confirmation** ("Send this answer to
+Claude? …") with Confirm / Back before anything is sent — Back returns to the
+picker with your selections intact. Confirming applies the answer by **driving
+the real TUI with keystrokes** (`lib/ask-question-keys.mjs`): single-select moves
+the cursor and hits Enter (auto-advancing to the next question); multi-select
+toggles the chosen boxes then selects Submit; multi-select/multi-question prompts
+then reach Claude's own review screen, which the overlay surfaces as a final
+Submit; the free-form input declines the prompt and sends your text as a normal
+reply. After each step the server re-parses and returns the next state, so
+multi-question prompts walk forward in place and the overlay closes when the
+prompt is gone.
+
+Server side (both local and controller mode — everything routes through the
+backend seam, so a remote agent's pane is driven the same way):
+`GET /api/ask-question?paneId=` returns `{ active, question }`;
+`POST /api/ask-answer {paneId, action, …}` with `action` of `single`
+(`optionIndex`), `multi` (`checked: number[]`), `free` (`text`), `reviewSubmit`,
+or `cancel`. Inter-keystroke delay is `TMUX_ASK_KEY_DELAY_MS` (default 140ms).
+
+### Window metadata
+
+Each window carries derived metadata (`lib/window-metadata.mjs`), exposed via
+`GET /api/window-metadata?sessionId=` as `{ [windowId]: { agentType, repo, git } }`:
+
+- **agentType** — `claude` / `codex` / `gemini` / null. Cheap when the foreground
+  command is the agent directly; when it's an interpreter (e.g. `node`, because
+  codex/claude/gemini are node CLIs run as `node /usr/bin/codex`), it resolves
+  the full command line via `ps` on the agent's tty and matches the agent there.
+  The `ps` lookup runs only for interpreter windows and is cached per tty (~15s).
+- **repo** — `{ host, owner, name }` from the git `origin` remote of the window's
+  cwd (for turning `PR #N` into a GitHub link). A *cwd-scoped* field: resolved on
+  the agent and cached by cwd with a 10-minute TTL (re-resolves when the cwd
+  changes; staleness is fine).
+- **git** — `{ branch, worktree }` (also cwd-scoped, short TTL).
+- **turn** — `working` / `idle` / null: has the agent's turn ended? Per agent:
+  claude from its pane title (a braille-spinner prefix = working, steady
+  `✳ Claude Code` = idle); codex from its pane footer (`Worked for…` = working,
+  `Goal achieved` / idle prompt = idle).
+- **waitingForInput** — `true` when the pane is blocked on an AskUserQuestion
+  prompt. Cheap: the `isAskQuestion()` detector's two regex tests over the screen
+  already captured for `turn`/`contentHash` (the full parse stays on-demand). This
+  is the strongest "needs you" signal — distinct from a turn that merely ended.
+- **contentHash** — a short hash of the visible pane, used by the client for
+  **unread** detection: a window whose hash differs from what it had at your last
+  visit is flagged with a dot ("new since last visit"); unchanged = nothing to
+  revisit. Visiting a window (or viewing it) updates its baseline.
+- **inCopyMode** — `true` when the active pane is in tmux's **scrollback pager**.
+  That has two `pane_mode` names that both swallow input: `copy-mode` (interactive)
+  and `view-mode` (read-only — what Claude Code's Ctrl+O output expansion / a
+  scroll-up actually lands in); both count (`isScrollbackMode`). This matters
+  because the pager intercepts keystrokes, so input sent while it's active never
+  reaches the program — the text sits in the prompt unsubmitted and the window
+  looks dead. `/api/send` and `/api/key` **auto-exit the pager** before delivering
+  input (`-X cancel`, which doesn't disturb the command line), so a stuck pane
+  self-heals on the next keystroke. The client also shows a "Scroll mode is on"
+  banner with an `/api/exit-copy-mode` button — but only after the pane has stayed
+  in the pager past a short grace period (~2s), since briefly entering it
+  (scrolling up to read) is intentional; re-entering restarts the grace clock.
+
+The window list shows a compact agent chip — a brand **icon** (claude / codex /
+gemini) rather than the agent's name, to save horizontal space — tinted by turn
+state (working pulses, idle dimmed, `❓ ask` when waiting on a question) plus an
+unread dot.
+
+**"Needs you" indicators.** A window *needs you* when its agent is waiting on a
+question, or its turn ended (idle) and its content changed since you last looked
+(idle + unread). This spans **all online machines, not just the focused one**: a
+single `GET /api/attention` (one request per poll regardless of machine count)
+has the controller sweep every machine — for each window it returns
+`turn`/`waitingForInput`/`contentHash` plus the stable identity (machine + session
+name + window index); the client applies its own local unread comparison against
+that hash. The poll runs every 5s (12s when hidden), even with no machine focused.
+It reflects the result three ways: an always-visible topbar **pill** (`● N
+waiting`, or a louder pulsing `❓ N needs answer` when any is a question) that
+**jumps to the first such window on tap — switching machines if it's on another**
+(auto-opening the answer overlay for a question); the browser **tab title**
+(`(N) …`) and a badged **favicon**, so a backgrounded tab/PWA still shows the
+count; and the per-window chip in the picker. The current window never counts
+itself.
+
+The metadata is a small **registry of descriptors** — each field is either `live`
+(computed from the window row) or `cwdScoped` (resolved via the agent + cached),
+so adding a field is one entry. Consumers today: an agent-type chip in the window
+list, and PR-reference linking (`PR #1234` → `github.com/owner/repo/issues/1234`
+for the active window's repo; bare `#1234` is deliberately not linked). Future
+uses: agent-specific mode switching and turn detection.
+
+### Window annotations
+
+Each window in the target picker has a free-text **follow-up note** (e.g.
+"waiting on CI #4567, check ~3pm") — handy after kicking off a long-running task
+in that window. Tap the note row under a window to edit it. The note is stored
+on the tmux window itself as the window-scoped `@tm_annotation` user option
+(`set-option -w`), so it travels with the window across devices and controller
+restarts, is returned inline by `GET /api/windows`, set via
+`PATCH /api/windows {windowId, annotation}` (empty clears it), and disappears
+when the window is closed.
+
+### Smart content viewer
+
+URLs in the pane are clickable. File paths ending in an image extension
+(`.png/.jpg/.jpeg/.gif/.svg/.webp/.bmp/.ico`) or a markdown extension
+(`.md/.markdown/.mdown/.mkd`) are also clickable and open an in-app viewer:
+images render inline, markdown renders to formatted HTML, and video/HTML
+(`.webm/.mp4/.m4v/.mov/.html`) open in an external browser tab (fetched as a
+blob, so native playback/rendering applies). The markdown renderer
+(`public/markdown.js`, dependency-free and HTML-escape-first) covers headings,
+bold/italic/code, fenced code, links/images, lists, blockquotes, hr, and
+GitHub-flavored **tables** (with per-column `:--`/`:-:`/`--:` alignment; tables
+scroll horizontally on narrow screens). Markdown
+` ```mermaid ` blocks render as diagrams — Mermaid is lazy-loaded from a CDN only
+when a file actually contains one (so plain markdown loads nothing extra) and
+runs with `securityLevel: 'strict'`; if it can't load, the diagram source stays
+visible. The file is read on the agent's machine via a new `readfile` protocol
+op and `GET /api/file`. A relative path resolves against the pane's working
+directory; absolute and `~` paths resolve as given. There is **no directory
+confinement** — the boundary is the OS file permissions of the user the agent
+runs as, so the viewer can open any file that user can read (and gets EACCES for
+ones it can't). Reads are capped (5 MB for inline image/markdown, 50 MB for
+external media/HTML) and limited to the viewable extensions. Browser access is
+gated by Google OAuth, so in practice this is "an authenticated user reading
+their own machine's files."
+
+On top of OS permissions, a **configurable denylist** blocks sensitive files
+even when the user could read them (SSH/cloud keys, `.env`, shell history, etc.).
+It's matched against the resolved real path (so a symlink can't slip past).
+Configure with `TMUX_MOBILE_READFILE_DENY` — a `:`-separated list of glob
+patterns (`*`, `**`, `?`); each pattern is tested against the full path and the
+basename. Setting it (even to empty) replaces the built-in defaults (empty
+disables the denylist); `TMUX_MOBILE_READFILE_DENY_EXTRA` appends to the
+defaults instead. Defaults live in `lib/readfile-deny.mjs` (`DEFAULT_DENY`).
+
+### Agent reconnect and revision migration
+
+The agent keeps its WebSocket alive with a ping/pong liveness check and
+terminates a dead socket to force a reconnect (env: `AGENT_PING_INTERVAL_MS`,
+`AGENT_PONG_TIMEOUT_MS`, `AGENT_MAX_BACKOFF_MS`).
+
+A controller deploy can leave existing agent sockets pinned to the old task for
+a short time. To handle this the agent polls the controller's public
+`/api/health` revision and re-dials when it changes, migrating itself onto the
+new revision (env: `AGENT_REVISION_POLL_MS`, default 15000; set `0` to disable).
+The controller also closes agent sockets on SIGTERM as a secondary path, for the
+cases where the old instance is torn down.
+
+That handles the *controller* updating. The other skew is the **connector process
+itself** running older code than the controller — e.g. the agent was started
+before a new op (`PANECMD`) existed, so it can't answer that request and newer
+features (here, agent-type detection for interpreter-launched agents) silently
+fail. The agent advertises its supported ops in the hello frame; the controller
+compares them against its current `AGENT_OPS` and connector compatibility
+version, then marks the machine **stale** in `GET /api/machines`. Command Center
+shows an **Update connector** action for stale machines. That action opens a
+temporary mux session on the target machine, downloads `scripts/update-connector.mjs`,
+pulls the controller's configured update ref, verifies the expected revision,
+runs `npm install --omit=dev`, and restarts the connector via launchd, systemd,
+or a detached fallback process. The running connector keeps its old code until it
+is restarted; the on-disk checkout being current is not enough. See
+[`docs/join-network.md`](docs/join-network.md) for the operator flow.
+
+## Scope
+
+- Uses a mobile-only attached-window layout.
+- Selects one tmux session from a dropdown, then lists that session's windows.
+- Uses the first pane in the selected window automatically.
+- Captures the selected window's first pane as visible screen, tail, or full scrollback.
+- Expands the terminal output to a larger fullscreen reading view.
+- Summarizes each window's active pane from its last 20 lines when the target picker is opened or refreshed, using `gpt-5.4-mini` by default.
+- Sends voice transcription directly to the selected window with Enter.
+- Sends compact actions for Enter, q, Esc, Ctrl-C, Claude, Codex, AGR, and reading the current window.
+- Encodes the selected session/window in the URL as `?session=<name>&window=<index>`.
+- Auto refresh is enabled by default for the selected window view.
+
+## Composer
+
+The composer is built around one rule: **the message box is the staging area for
+everything except raw terminal keys.** Snippets, voice dictation, typing, and
+recent history all populate the box; you review, then **Send** it to the pane.
+
+- **Message box** — a spacious Lexical contenteditable (falls back to a plain
+  contenteditable if the CDN fails). Enter sends, Shift+Enter newlines. The
+  **mic** dictates into it; **Send** submits.
+- **Tactical snippets** — a horizontal chip row of reusable text (`yes`,
+  `continue`, `/clear`, `/model`, `/btw `, `claude`, `codex`, `/goal ` by default). Tapping
+  a chip **inserts** its text into the box (it doesn't send). The list icon opens
+  the **Insert picker** with two sections: **Snippets** (curated; add/edit/reorder/
+  delete) and **Recent** (auto-collected from what you've sent). Snippets are a
+  per-user preference (`{ text }[]`) served by `/api/snippets`: local installs
+  persist to `~/.config/tmux-mobile/snippets.json`, while prod can set
+  `TMUX_MOBILE_SNIPPETS_STORE=dynamo` with
+  `TMUX_MOBILE_USER_PREFS_DYNAMO_TABLE=<table>` for one DynamoDB item per user
+  (record id `snippets#<userId>`).
+  The browser keeps `tmux-mobile-snippets` only as a startup cache and one-time
+  migration source for snippets saved before server-side preferences existed.
+- **History as auto snippets** — every Send is recorded to
+  `tmux-mobile-composer-history` (bounded 100, newest-first, deduped) and shown in
+  the Insert picker's **Recent** section; tap to insert for edit/resend.
+- **Direct keys** — a high-contrast row (`Ent Esc ^C Tab ↑ ↓`) that sends raw
+  terminal signals straight to the pane (the only controls that bypass the box).
+- **File upload (📎)** — attach a file from your phone; it's written to a temp
+  directory on the **target machine** (`$TMUX_MOBILE_UPLOAD_DIR`, or
+  `<os tmpdir>/tmux-mobile-uploads` by default) and its absolute path is inserted
+  into the box to reference. Goes through `POST /api/upload` → the backend seam's
+  `writeTempFile` (a new `WRITEFILE` agent op, so a controller brokers it to the
+  registered machine; capped at 25 MiB; the filename is sanitized to a basename).
+- **Global actions** in the topbar: **Read** (TTS of the window) and the
+  **needs-attention** pill.
+
+## Agent notifications
+
+For Claude Code / Codex phone notification hooks, see
+[`docs/agent-notification-hooks.md`](docs/agent-notification-hooks.md).
+
+## Session transcript archive (experimental)
+
+The hook-free raw transcript replication and central event-decoding rules are
+documented in
+[`docs/session-transcript-archive.md`](docs/session-transcript-archive.md).
+The capability is off by default. A controller can enable the first archive
+slice with a separate private object-store prefix:
+
+```bash
+TMUX_MOBILE_TRANSCRIPT_ARCHIVE_ENABLED=1
+TMUX_MOBILE_TRANSCRIPT_ARCHIVE_MACHINE_ALLOWLIST=connector-agent-uuid
+# Optional second fence (comma-separated authenticated owner IDs/emails):
+TMUX_MOBILE_TRANSCRIPT_ARCHIVE_OWNER_ALLOWLIST=owner@example.com
+# Optional canary backfill of closed/non-active UUID-named transcript files:
+TMUX_MOBILE_TRANSCRIPT_ARCHIVE_ROOT_DISCOVERY=1
+TMUX_MOBILE_TRANSCRIPT_STORAGE=s3
+TMUX_MOBILE_TRANSCRIPT_S3_BUCKET=your-private-bucket
+TMUX_MOBILE_TRANSCRIPT_S3_REGION=us-east-1
+TMUX_MOBILE_TRANSCRIPT_S3_KEY_PREFIX=transcripts/
+```
+
+`gcs` is also supported. `local` requires the explicit development-only
+`TMUX_MOBILE_TRANSCRIPT_ALLOW_EPHEMERAL_LOCAL=1`; it must not back durable ACKs
+on an ephemeral controller. Startup probes object-store write/read access, and
+only allowlisted machines receive the capability after their authenticated
+HELLO identity is known. Updated connectors always discover active Claude/Codex
+session JSONL from their normal inventory. The separately gated root scanner
+recursively discovers UUID-named regular `.jsonl` files under the two
+allowlisted agent roots without following symlinks or parsing vendor JSON; this
+is how a canary can backfill closed/non-active sessions. Connectors upload
+newline-aligned chunks, persist pending bytes locally until a durable ACK, and
+never install a local Stop hook.
+
+Closed-session work is limited to eight sources per 10-second connector sync;
+`TMUX_MOBILE_TRANSCRIPT_BACKFILL_SESSIONS_PER_SYNC` can override that value in
+the connector's local environment.
+
+This first slice is raw-archive plumbing only. The checked-in decoder is a pure
+shadow/test state machine; it is not wired to archive commits, a durable index,
+an outbox, SQS, or Event Radio. Keep the feature off except for an explicit
+one-machine raw-archive canary whose production bucket/IAM has been verified.
+S3 ETag/GCS generation preconditions protect manifest writes across overlapping
+controller tasks. Do not enable event publication until the historical
+publication fence, durable source catalog, decoder checkpoint, and outbox
+exist. A known epoch is already replayable through immutable range records
+linked backward from its manifest.
+
+## Voice transcription
+
+Voice mode uses the OpenAI transcription API from the hosted Controller. Set an API key before starting the Controller:
+
+```bash
+export OPENAI_API_KEY=...
+npm start
+```
+
+You can also put the key in a local `.env` file:
+
+```bash
+OPENAI_API_KEY=...
+```
+
+The `.env` file is ignored by git and is loaded automatically on server startup.
+
+The default transcription model is `gpt-4o-mini-transcribe`. Override it with:
+
+```bash
+OPENAI_TRANSCRIBE_MODEL=gpt-4o-transcribe npm start
+```
+
+Dictation is **transcribe-then-review**, not auto-send: tapping the mic enters a
+**listening** state (waveform across the box, glowing border, pulsing controls);
+**Keep (✓)** transcribes via `/api/transcribe` and **appends the text to the
+message box** for you to edit and Send, while **Discard (✕)** throws the audio
+away. (`/api/voice-send`, which transcribed *and* sent in one step, is no longer
+used by the client.) To drop a `/btw ` side-note, tap the `/btw ` snippet — it
+prefixes the box like any other snippet.
+
+The voice models (transcription, read-aloud TTS, and realtime) can also be
+changed at runtime from the web app: open the topbar **More → Voice settings**
+sheet and pick a model/voice per field. Configuration is **per-user** — on the
+multi-user controller each Google-authenticated user has their own voice
+settings, and one user's choice never affects another's. The `OPENAI_*` env vars
+above act as the per-field defaults; a choice made in the UI takes precedence
+until cleared back to the default. Overrides are saved (keyed by user id) to
+`~/.config/tmux-mobile/voice.json` (override the path with
+`TMUX_MOBILE_VOICE_CONFIG`). Selections are validated against a curated
+allowlist, so the API can't be used to inject an arbitrary model name. Each
+voice picker has a **▶ Sample** button that plays a short clip in the selected
+voice (via the TTS sample endpoint) so you can compare voices before saving. On
+Cloud Run the home dir is ephemeral, so overrides live in memory for the
+instance's lifetime and reset to defaults when the single instance recycles.
+
+Voice sends include one delayed extra Enter as a submit nudge for terminal UIs that sometimes keep pasted text in the prompt. The default delay is 700 ms. Override it with:
+
+```bash
+TMUX_SUBMIT_NUDGE_DELAY_MS=1000 npm start
+```
+
+Window summaries use `gpt-5.4-mini` by default. Override them with:
+
+```bash
+OPENAI_SUMMARY_MODEL=gpt-5.4-mini npm start
+```
+
+Summaries are requested only from the target picker: opening the picker, selecting a session inside it, or tapping its Refresh button. The server caches summaries for 60 seconds unless Refresh forces a new one.
+
+Window audio reads use a two-step OpenAI flow. The server captures the last
+100 tmux lines, uses a text model to extract the latest user-facing agent
+response verbatim, then mints a short-lived Realtime client secret. The browser
+uses that token to connect directly to OpenAI and sends only the extracted
+response over the Realtime data channel for reading.
+Defaults:
+
+```bash
+OPENAI_AGENT_RESPONSE_EXTRACT_MODEL=gpt-5.4-mini
+OPENAI_AGENT_RESPONSE_EXTRACT_MAX_OUTPUT_TOKENS=4096
+OPENAI_REALTIME_MODEL=gpt-realtime
+OPENAI_REALTIME_VOICE=cedar
+OPENAI_REALTIME_CLIENT_SECRET_TTL_SECONDS=600
+OPENAI_REALTIME_WINDOW_BRIEFING_MAX_OUTPUT_TOKENS=inf
+OPENAI_REALTIME_WINDOW_BRIEFING_CHUNK_LINES=12
+OPENAI_REALTIME_WINDOW_BRIEFING_CHUNK_CHARS=1200
+```
+
+The legacy non-streaming endpoint can still be configured with
+`OPENAI_WINDOW_BRIEFING_MODEL`, `OPENAI_SPEECH_MODEL`, and `OPENAI_SPEECH_VOICE`.
+
+The development-only local mode binds to loopback; deployed users and
+Connectors use the hosted HTTPS Controller.
+
+## Pi Agent
+
+Command Center supports Claude Code, Codex and Pi (`pi`; verified with Pi 1.1.0).
+The Connector installs a small managed extension at
+`~/.pi/agent/extensions/tmax-connector.js` (or under `PI_CODING_AGENT_DIR`).
+Restart Pi or run `/reload` once in already-open sessions. The extension records
+only local session identity, active branch, name, model and running/idle state;
+it adds no timers, network requests or model calls. The Connector never chooses
+between simultaneous Pi sessions by working-directory modification time.
+
+Pi cards support prompts, complete final responses, conversation links, native
+session names, starting new sessions and forking the exact selected session.
+Original JSONL records use the existing acknowledged, incremental archive and
+feed progress reports. Conversation display follows the last persisted branch;
+live cards additionally follow the extension's current leaf when `/tree` moves
+without appending a message. Reasoning and tool payloads are excluded from the
+dialogue view. Existing terminal input, Markdown and Mermaid rendering are reused.
+
+Default archive root: `~/.pi/agent/sessions`. Set
+`TMUX_MOBILE_PI_TRANSCRIPT_ROOT` on the Connector for a custom Pi session store;
+`PI_CODING_AGENT_SESSION_DIR` is also recognized. Paths outside that allowed root
+are not read or uploaded. With `--no-extensions`/`--no-session`, identification can
+still show a Pi card, but live state or persistent history may be unavailable.
+Pi model/effort are displayed; Claude/Codex-specific permission-mode keyboard
+shortcuts are not sent to Pi.
+
+### Notification quiet hours
+
+Web: **More → Notifications** (`/notification-settings.html`). Mobile: **Settings & updates → Notifications**.
+Quiet hours are off by default. An administrator can enable a daily start/end time and IANA timezone for the shared notification topic across all machines. Changes take effect on the controller without restarting it; muted completions are consumed, not replayed later. Deduplication and per-topic rate limiting still apply.
+
+`GET /api/notification-settings` returns the current settings and `canEdit`; `PUT` requires a super-admin session. Settings use the existing preferences DynamoDB table (`notification-settings#global`) when `TMUX_MOBILE_SNIPPETS_STORE=dynamo`. Local servers use `~/.config/tmux-mobile/notification-settings.json`; override with `TMUX_MOBILE_NOTIFICATION_SETTINGS_CONFIG`. There is no background settings polling.

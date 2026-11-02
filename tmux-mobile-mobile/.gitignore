@@ -1,0 +1,69 @@
+# dependencies
+node_modules/
+.yarn/install-state.gz
+
+# Expo / generated output
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+# The iOS native project is versioned for reproducible TestFlight builds.
+# ios/.gitignore excludes Pods, build products, and machine-local Xcode state.
+/android
+
+# Native signing and local SDK state
+*.aab
+*.apk
+*.ipa
+*.jks
+*.key
+*.p8
+*.p12
+*.pem
+*.mobileprovision
+.knownPackages
+build-tools/
+licenses/
+ndk/
+platform-tools/
+platforms/
+
+# Local env and logs
+.env
+.env*.local
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+*.tsbuildinfo
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+
+# Agent-local config
+.agent/
+.agents/
+.claude/
+.codex/
+.continue/
+.cursor/
+.gemini/
+.goose/
+.opencode/
+.windsurf/
+CLAUDE.local.md
+
+# Shared project skill: Codex reads .agents; Claude Code reads .claude.
+!.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/eli5/
+!.agents/skills/eli5/**
+!.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/eli5/
+!.claude/skills/eli5/**

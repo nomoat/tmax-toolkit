@@ -1,0 +1,13 @@
+.DS_Store
+.env
+.env.*
+*.log
+node_modules/
+dist/
+tmp/
+.playwright-mcp/
+tools/terminal-tui/target/
+
+# AWS Fargate setup writes resource IDs here so subsequent runs can pick up
+# where the previous left off. Per-environment, not for sharing.
+scripts/aws-state.env

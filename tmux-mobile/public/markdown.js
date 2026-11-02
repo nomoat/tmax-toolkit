@@ -1,0 +1,633 @@
+// Minimal, dependency-free, safe-by-default Markdown -> HTML renderer for the
+// content viewer. Not CommonMark-complete, but covers the constructs that show up
+// in READMEs and notes: headings, bold/italic/strikethrough/code, fenced code
+// blocks, links, images, bare-URL autolinking, ordered/unordered/task/NESTED
+// lists, blockquotes, tables, hr, paragraphs. All text is HTML-escaped first, so
+// raw HTML in the source is shown as text (no injection). Inline links/images
+// are only emitted for http(s)/relative targets — never javascript: URLs.
+
+import { escapeHtml } from "./linkify.js";
+
+function safeUrl(raw) {
+  const url = String(raw).trim();
+  // Block javascript:, data: (except images handled separately), vbscript:, etc.
+  if (/^\s*(javascript|vbscript|file):/i.test(url)) return "";
+  return url;
+}
+
+// Autolink bare http(s) URLs in an already-escaped, link/code-free text segment.
+// Trailing punctuation that's clearly sentence-level (not part of the URL) is
+// pushed back outside the link. Operates only on plain text (see renderInline,
+// which protects existing <a>/<code>/<img> by running this before them only on
+// the residual text via placeholders).
+const BARE_URL_RE = /\bhttps?:\/\/[^\s<>()]+/g;
+function autolink(escaped) {
+  return escaped.replace(BARE_URL_RE, (m) => {
+    // Trim trailing . , ; : ! ? ) ] } and escaped entities that usually end a
+    // sentence rather than the URL.
+    let url = m;
+    let trail = "";
+    const tm = url.match(/([.,;:!?)\]}]+|&[a-z]+;)+$/i);
+    if (tm) {
+      trail = tm[0];
+      url = url.slice(0, url.length - trail.length);
+    }
+    const safe = safeUrl(url);
+    if (!safe) return m;
+    return `<a href="${safe.replaceAll('"', "%22")}" target="_blank" rel="noopener noreferrer">${url}</a>${trail}`;
+  });
+}
+
+const MATHBB_CHARS = new Map(Object.entries({
+  A: "𝔸",
+  B: "𝔹",
+  C: "ℂ",
+  D: "𝔻",
+  E: "𝔼",
+  F: "𝔽",
+  G: "𝔾",
+  H: "ℍ",
+  I: "𝕀",
+  J: "𝕁",
+  K: "𝕂",
+  L: "𝕃",
+  M: "𝕄",
+  N: "ℕ",
+  O: "𝕆",
+  P: "ℙ",
+  Q: "ℚ",
+  R: "ℝ",
+  S: "𝕊",
+  T: "𝕋",
+  U: "𝕌",
+  V: "𝕍",
+  W: "𝕎",
+  X: "𝕏",
+  Y: "𝕐",
+  Z: "ℤ",
+}));
+
+const LATEX_SYMBOLS = new Map(Object.entries({
+  alpha: "α",
+  beta: "β",
+  gamma: "γ",
+  delta: "δ",
+  epsilon: "ε",
+  varepsilon: "ε",
+  zeta: "ζ",
+  eta: "η",
+  theta: "θ",
+  vartheta: "ϑ",
+  iota: "ι",
+  kappa: "κ",
+  lambda: "λ",
+  mu: "μ",
+  nu: "ν",
+  xi: "ξ",
+  pi: "π",
+  rho: "ρ",
+  sigma: "σ",
+  tau: "τ",
+  upsilon: "υ",
+  phi: "φ",
+  varphi: "φ",
+  chi: "χ",
+  psi: "ψ",
+  omega: "ω",
+  Gamma: "Γ",
+  Delta: "Δ",
+  Theta: "Θ",
+  Lambda: "Λ",
+  Xi: "Ξ",
+  Pi: "Π",
+  Sigma: "Σ",
+  Upsilon: "Υ",
+  Phi: "Φ",
+  Psi: "Ψ",
+  Omega: "Ω",
+  cdot: "·",
+  times: "×",
+  div: "÷",
+  pm: "±",
+  mp: "∓",
+  le: "≤",
+  leq: "≤",
+  ge: "≥",
+  geq: "≥",
+  ne: "≠",
+  neq: "≠",
+  equiv: "≡",
+  cong: "≅",
+  approx: "≈",
+  sim: "∼",
+  simeq: "≃",
+  in: "∈",
+  notin: "∉",
+  subset: "⊂",
+  subseteq: "⊆",
+  supset: "⊃",
+  supseteq: "⊇",
+  cup: "∪",
+  cap: "∩",
+  emptyset: "∅",
+  varnothing: "∅",
+  forall: "∀",
+  exists: "∃",
+  neg: "¬",
+  land: "∧",
+  lor: "∨",
+  to: "→",
+  rightarrow: "→",
+  leftarrow: "←",
+  mapsto: "↦",
+  Rightarrow: "⇒",
+  Leftarrow: "⇐",
+  leftrightarrow: "↔",
+  iff: "⇔",
+  sum: "∑",
+  prod: "∏",
+  int: "∫",
+  partial: "∂",
+  nabla: "∇",
+  infinity: "∞",
+  infty: "∞",
+  ldots: "…",
+  cdots: "⋯",
+}));
+
+function renderMathBlackboard(body) {
+  return [...body].map((ch) => MATHBB_CHARS.get(ch) || ch).join("");
+}
+
+function replaceSimpleLatexGroups(s, command, render) {
+  const re = new RegExp(`\\\\${command}\\{([^{}]*)\\}`, "g");
+  return s.replace(re, (_m, body) => render(body));
+}
+
+function replaceSimpleLatexPairs(s, command, render) {
+  const re = new RegExp(`\\\\${command}\\{([^{}]*)\\}\\{([^{}]*)\\}`, "g");
+  return s.replace(re, (_m, a, b) => render(a, b));
+}
+
+function shouldRenderInlineMath(expr) {
+  if (!expr || expr.trim() !== expr) return false;
+  if (expr.length > 180) return false;
+  return true;
+}
+
+function renderMathInner(input) {
+  const snippets = [];
+  const stash = (html) => {
+    snippets.push(html);
+    return `\u0000M${snippets.length - 1}\u0000`;
+  };
+  let s = String(input).trim();
+  s = s.replace(/\\\\/g, "<br>");
+  s = s.replace(/\\(?:left|right)\b/g, "");
+  s = s.replace(/\\[,;:!]/g, " ");
+  s = s.replace(/~/g, " ");
+  s = replaceSimpleLatexPairs(s, "frac", (a, b) => stash(
+    `<span class="md-math-frac"><span>${renderMathInner(a)}</span><span>${renderMathInner(b)}</span></span>`,
+  ));
+  s = replaceSimpleLatexPairs(s, "binom", (a, b) => stash(
+    `<span class="md-math-binom">(${renderMathInner(a)} choose ${renderMathInner(b)})</span>`,
+  ));
+  s = s.replace(/\\underbrace\{([^{}]*)\}_\{([^{}]*)\}/g, (_m, a, b) => stash(
+    `<span class="md-math-underbrace"><span>${renderMathInner(a)}</span><sub>${renderMathInner(b)}</sub></span>`,
+  ));
+  s = replaceSimpleLatexGroups(s, "mathbb", renderMathBlackboard);
+  s = replaceSimpleLatexGroups(s, "mathbf", (body) => body);
+  s = replaceSimpleLatexGroups(s, "mathrm", (body) => body);
+  s = replaceSimpleLatexGroups(s, "text", (body) => body);
+  s = replaceSimpleLatexGroups(s, "operatorname", (body) => body);
+  s = s.replace(/\\([A-Za-z]+)\b/g, (_m, name) => LATEX_SYMBOLS.get(name) || name);
+  s = s.replace(/\^\{([^{}]+)\}/g, (_m, body) => `<sup>${renderMathInner(body)}</sup>`);
+  s = s.replace(/_\{([^{}]+)\}/g, (_m, body) => `<sub>${renderMathInner(body)}</sub>`);
+  s = s.replace(/\^([A-Za-z0-9+\-=]+)/g, "<sup>$1</sup>");
+  s = s.replace(/_([A-Za-z0-9+\-=]+)/g, "<sub>$1</sub>");
+  s = s.replace(/\s+/g, " ").trim();
+  return s.replace(/\u0000M(\d+)\u0000/g, (_m, n) => snippets[Number(n)] || "");
+}
+
+function renderMath(expr, display = false) {
+  const cls = display ? "md-math md-math-display" : "md-math md-math-inline";
+  return `<span class="${cls}">${renderMathInner(expr)}</span>`;
+}
+
+function isDisplayMathStart(line) {
+  return /^\s*(\$\$|\\\[)/.test(line);
+}
+
+function readDisplayMathBlock(lines, start) {
+  const line = lines[start];
+  const dollar = line.match(/^\s*\$\$\s*(.*)$/);
+  const bracket = line.match(/^\s*\\\[\s*(.*)$/);
+  if (!dollar && !bracket) return null;
+  const closeRe = dollar ? /\s*\$\$\s*$/ : /\s*\\\]\s*$/;
+  let body = dollar ? dollar[1] : bracket[1];
+  let i = start + 1;
+  if (closeRe.test(body)) {
+    body = body.replace(closeRe, "");
+    return { html: renderMath(body, true), next: i };
+  }
+  while (i < lines.length) {
+    const current = lines[i];
+    if (closeRe.test(current)) {
+      body += `\n${current.replace(closeRe, "")}`;
+      i += 1;
+      return { html: renderMath(body, true), next: i };
+    }
+    body += `\n${current}`;
+    i += 1;
+  }
+  return { html: renderMath(body, true), next: i };
+}
+
+function renderInline(text) {
+  // Operate on already-escaped text. Order matters: code spans first so their
+  // contents aren't further formatted, and so autolink/emphasis never touch code.
+  let s = escapeHtml(text);
+
+  // Protect inline code `...` with placeholders so later passes skip their bodies.
+  const codeStash = [];
+  s = s.replace(/`([^`]+)`/g, (_m, code) => {
+    codeStash.push(`<code>${code}</code>`);
+    return `\u0000C${codeStash.length - 1}\u0000`;
+  });
+
+  // Images ![alt](src) — before links (same bracket syntax). Stash so autolink
+  // never touches the URL inside src="...".
+  const imgStash = [];
+  s = s.replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g, (_m, alt, src) => {
+    const url = safeUrl(unescapeAttr(src));
+    if (!url) return _m;
+    imgStash.push(`<img alt="${alt}" src="${url.replaceAll('"', "%22")}" />`);
+    return ` I${imgStash.length - 1} `;
+  });
+
+  // Explicit links [text](href) — stash them too so autolink doesn't double-wrap.
+  const linkStash = [];
+  s = s.replace(/\[([^\]]+)\]\(([^)\s]+)(?:\s+&quot;[^)]*&quot;)?\)/g, (_m, label, href) => {
+    const url = safeUrl(unescapeAttr(href));
+    if (!url) return label;
+    linkStash.push(
+      `<a href="${url.replaceAll('"', "%22")}" target="_blank" rel="noopener noreferrer">${label}</a>`,
+    );
+    return `\u0000L${linkStash.length - 1}\u0000`;
+  });
+
+  const mathStash = [];
+  const stashMath = (expr, display = false) => {
+    mathStash.push(renderMath(expr, display));
+    return `\u0000M${mathStash.length - 1}\u0000`;
+  };
+  s = s.replace(/\$\$([\s\S]+?)\$\$/g, (_m, expr) => {
+    const trimmed = expr.trim();
+    return trimmed ? stashMath(trimmed, true) : _m;
+  });
+  s = s.replace(/(^|[^\\$])\$(?!\$)([^\n$]+?)\$/g, (m, lead, expr) => {
+    if (expr.endsWith("\\") || !shouldRenderInlineMath(expr)) return m;
+    return `${lead}${stashMath(expr, false)}`;
+  });
+
+  // Bare URL autolinking on the remaining plain text (code + explicit links are
+  // stashed out, so this can't touch them).
+  s = autolink(s);
+
+  // Bold **...** / __...__
+  s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+  s = s.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+  // Strikethrough ~~...~~
+  s = s.replace(/~~([^~]+)~~/g, "<del>$1</del>");
+  // Italic *...* / _..._
+  s = s.replace(/(^|[^*])\*([^*]+)\*/g, "$1<em>$2</em>");
+  s = s.replace(/(^|[^_])_([^_]+)_/g, "$1<em>$2</em>");
+
+  // Restore stashed images, links, then code.
+  s = s.replace(/ I(\d+) /g, (_m, n) => imgStash[Number(n)]);
+  s = s.replace(/\u0000L(\d+)\u0000/g, (_m, n) => linkStash[Number(n)]);
+  s = s.replace(/\u0000M(\d+)\u0000/g, (_m, n) => mathStash[Number(n)]);
+  s = s.replace(/\u0000C(\d+)\u0000/g, (_m, n) => codeStash[Number(n)]);
+
+  return s;
+}
+
+function unescapeAttr(value) {
+  return String(value).replaceAll("&amp;", "&").replaceAll("&#039;", "'").replaceAll("&quot;", '"');
+}
+
+// Split a GitHub-flavored table row into cells. Leading/trailing pipes are
+// optional; a backslash-escaped pipe (\|) is a literal, not a separator.
+function splitTableRow(line) {
+  const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+  const cells = [];
+  let cur = "";
+  for (let j = 0; j < trimmed.length; j += 1) {
+    const ch = trimmed[j];
+    if (ch === "\\" && trimmed[j + 1] === "|") {
+      cur += "|"; // literal pipe
+      j += 1;
+    } else if (ch === "|") {
+      cells.push(cur.trim());
+      cur = "";
+    } else {
+      cur += ch;
+    }
+  }
+  cells.push(cur.trim());
+  return cells;
+}
+
+// A delimiter row is the second line of a table: each cell is dashes with
+// optional leading/trailing alignment colons (e.g. ---, :--, --:, :-:). Returns
+// per-column alignment ("left" | "right" | "center" | null), or null if the line
+// isn't a valid delimiter row.
+function parseTableDelimiter(line) {
+  if (!/\|/.test(line) && !/^\s*:?-+:?\s*$/.test(line)) return null;
+  const cells = splitTableRow(line);
+  if (!cells.length || cells.some((c) => !/^:?-+:?$/.test(c))) return null;
+  return cells.map((c) => {
+    const left = c.startsWith(":");
+    const right = c.endsWith(":");
+    if (left && right) return "center";
+    if (right) return "right";
+    if (left) return "left";
+    return null;
+  });
+}
+
+// True if `line` could start a table (has a pipe and isn't a fenced block etc.)
+// and `next` is a delimiter row. Tables need both rows to be recognized.
+function isTableStart(line, next) {
+  if (next == null || !/\|/.test(line)) return false;
+  return parseTableDelimiter(next) !== null;
+}
+
+// ── List parsing ───────────────────────────────────────────────────────────
+// A list item line: capture indent, marker, optional ordered number, optional
+// task checkbox, and the content. Markers: -, *, + (unordered) or "N." / "N)".
+const LIST_ITEM_RE = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
+
+function parseListItem(line) {
+  const m = line.match(LIST_ITEM_RE);
+  if (!m) return null;
+  const indent = m[1].replace(/\t/g, "    ").length;
+  const marker = m[2];
+  const ordered = /\d/.test(marker);
+  let content = m[3];
+  // Task list checkbox: "[ ] ..." / "[x] ..." right after the marker.
+  let task = null;
+  const tm = content.match(/^\[([ xX])\]\s+(.*)$/);
+  if (tm) {
+    task = tm[1].toLowerCase() === "x";
+    content = tm[2];
+  }
+  const num = ordered ? parseInt(marker, 10) : null;
+  return { indent, ordered, num, task, content };
+}
+
+// Consume a whole list block starting at lines[start]. Returns { html, next }.
+// Indentation-aware + recursive: deeper-indented items nest; blank lines inside
+// the block are allowed (loose lists) without breaking numbering; non-item lines
+// indented under an item are continuation text folded into that item.
+function parseListBlock(lines, start) {
+  const first = parseListItem(lines[start]);
+  const baseIndent = first.indent;
+  const ordered = first.ordered;
+  const tag = ordered ? "ol" : "ul";
+  const items = []; // each: { headHtml, childLines:[], task }
+  let i = start;
+
+  while (i < lines.length) {
+    // Skip blank lines, but only if a sibling list item follows (loose list).
+    if (/^\s*$/.test(lines[i])) {
+      let j = i + 1;
+      while (j < lines.length && /^\s*$/.test(lines[j])) j += 1;
+      const after = j < lines.length ? parseListItem(lines[j]) : null;
+      const afterIndent = j < lines.length
+        ? lines[j].replace(/\t/g, "    ").match(/^\s*/)[0].length
+        : -1;
+      // Continue the list if the next non-blank line is a sibling/child item, or
+      // indented continuation under the current item; otherwise the list ends.
+      // A same-level sibling of a DIFFERENT marker type (ul vs ol) ends this
+      // list so an adjacent list of the other type starts cleanly.
+      if (after && after.indent > baseIndent) {
+        i = j;
+        continue;
+      }
+      if (after && after.indent === baseIndent && after.ordered === ordered) {
+        i = j;
+        continue;
+      }
+      if (j < lines.length && afterIndent > baseIndent && !after) {
+        i = j;
+        continue;
+      }
+      break;
+    }
+
+    const item = parseListItem(lines[i]);
+    const lineIndent = lines[i].replace(/\t/g, "    ").match(/^\s*/)[0].length;
+
+    if (item && item.indent === baseIndent && item.ordered === ordered) {
+      // A new sibling item at this level (same marker type).
+      items.push({ head: item.content, children: [], task: item.task });
+      i += 1;
+      continue;
+    }
+    if (item && item.indent === baseIndent && item.ordered !== ordered) {
+      // Same level but the marker type flipped (ul↔ol) → end this list so the
+      // adjacent list of the other type is parsed separately.
+      break;
+    }
+    if (item && item.indent > baseIndent) {
+      // Deeper item → nested list; attach its raw lines to the current item.
+      if (!items.length) {
+        items.push({ head: "", children: [], task: null });
+      }
+      items[items.length - 1].children.push(lines[i]);
+      i += 1;
+      continue;
+    }
+    if (!item && lineIndent > baseIndent && items.length) {
+      // Indented non-item line = continuation of the current item's content.
+      items[items.length - 1].children.push(lines[i]);
+      i += 1;
+      continue;
+    }
+    // Not part of this list.
+    break;
+  }
+
+  // Render. Children blocks are parsed recursively via renderBlocks so nested
+  // lists / paragraphs inside an item work.
+  const startAttr = ordered && first.num != null && first.num !== 1
+    ? ` start="${first.num}"`
+    : "";
+  const out = [`<${tag}${startAttr}>`];
+  for (const it of items) {
+    const headHtml = renderInline(it.head.trim());
+    let childHtml = "";
+    if (it.children.length) {
+      // Dedent children by the base indent + a couple spaces so nested markers
+      // line up at column 0 for the recursive pass.
+      const dedented = dedent(it.children);
+      childHtml = renderBlocks(dedented).trim();
+    }
+    const cls = it.task != null ? ' class="task-item"' : "";
+    const box = it.task != null
+      ? `<input type="checkbox" disabled${it.task ? " checked" : ""} /> `
+      : "";
+    out.push(`<li${cls}>${box}${headHtml}${childHtml ? "\n" + childHtml : ""}</li>`);
+  }
+  out.push(`</${tag}>`);
+  return { html: out.join("\n"), next: i };
+}
+
+// Remove the common leading-whitespace prefix from a block of lines (so nested
+// content can be re-parsed from column 0).
+function dedent(lines) {
+  let min = Infinity;
+  for (const l of lines) {
+    if (/^\s*$/.test(l)) continue;
+    const n = l.replace(/\t/g, "    ").match(/^\s*/)[0].length;
+    if (n < min) min = n;
+  }
+  if (!isFinite(min) || min === 0) return lines.slice();
+  return lines.map((l) => l.replace(/\t/g, "    ").slice(min));
+}
+
+// Render a sequence of block-level lines to HTML. Used at the top level and
+// recursively for list-item children.
+function renderBlocks(lines) {
+  const html = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i];
+
+    const mathBlock = readDisplayMathBlock(lines, i);
+    if (mathBlock) {
+      html.push(mathBlock.html);
+      i = mathBlock.next;
+      continue;
+    }
+
+    // Fenced code block ```
+    const fence = line.match(/^\s*```(.*)$/);
+    if (fence) {
+      const lang = fence[1].trim().toLowerCase();
+      const code = [];
+      i += 1;
+      while (i < lines.length && !/^\s*```/.test(lines[i])) {
+        code.push(lines[i]);
+        i += 1;
+      }
+      i += 1; // skip closing fence
+      const body = code.join("\n");
+      if (lang === "mermaid") {
+        html.push(
+          `<pre class="mermaid-block" data-mermaid="pending">${escapeHtml(body)}</pre>`,
+        );
+      } else {
+        html.push(`<pre class="md-code"><code>${escapeHtml(body)}</code></pre>`);
+      }
+      continue;
+    }
+
+    // Horizontal rule
+    if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) {
+      html.push("<hr />");
+      i += 1;
+      continue;
+    }
+
+    // Heading
+    const heading = line.match(/^(#{1,6})\s+(.*)$/);
+    if (heading) {
+      const level = heading[1].length;
+      html.push(`<h${level}>${renderInline(heading[2].trim())}</h${level}>`);
+      i += 1;
+      continue;
+    }
+
+    // Blockquote
+    if (/^\s*>\s?/.test(line)) {
+      const quote = [];
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+        quote.push(lines[i].replace(/^\s*>\s?/, ""));
+        i += 1;
+      }
+      html.push(`<blockquote>${renderInline(quote.join(" "))}</blockquote>`);
+      continue;
+    }
+
+    // Table (GitHub-flavored): a header row, a delimiter row, then body rows.
+    if (isTableStart(line, lines[i + 1])) {
+      const aligns = parseTableDelimiter(lines[i + 1]);
+      const headers = splitTableRow(line);
+      const alignAttr = (n) => (aligns[n] ? ` style="text-align:${aligns[n]}"` : "");
+      const rows = [];
+      i += 2; // consume header + delimiter
+      while (i < lines.length && /\|/.test(lines[i]) && !/^\s*$/.test(lines[i])) {
+        rows.push(splitTableRow(lines[i]));
+        i += 1;
+      }
+      const out = ['<table class="md-table">', "<thead>", "<tr>"];
+      headers.forEach((h, n) => {
+        out.push(`<th${alignAttr(n)}>${renderInline(h)}</th>`);
+      });
+      out.push("</tr>", "</thead>", "<tbody>");
+      for (const row of rows) {
+        out.push("<tr>");
+        for (let n = 0; n < headers.length; n += 1) {
+          out.push(`<td${alignAttr(n)}>${renderInline(row[n] || "")}</td>`);
+        }
+        out.push("</tr>");
+      }
+      out.push("</tbody>", "</table>");
+      html.push(out.join(""));
+      continue;
+    }
+
+    // List (ordered / unordered / task) — consumed as a whole block so nested
+    // and loose lists keep correct structure and numbering.
+    if (parseListItem(line)) {
+      const { html: listHtml, next } = parseListBlock(lines, i);
+      html.push(listHtml);
+      i = next;
+      continue;
+    }
+
+    // Blank line
+    if (/^\s*$/.test(line)) {
+      i += 1;
+      continue;
+    }
+
+    // Paragraph: gather consecutive non-blank, non-special lines.
+    const para = [line];
+    i += 1;
+    while (
+      i < lines.length &&
+      !/^\s*$/.test(lines[i]) &&
+      !/^\s*```/.test(lines[i]) &&
+      !isDisplayMathStart(lines[i]) &&
+      !/^(#{1,6})\s/.test(lines[i]) &&
+      !parseListItem(lines[i]) &&
+      !/^\s*>\s?/.test(lines[i]) &&
+      !isTableStart(lines[i], lines[i + 1])
+    ) {
+      para.push(lines[i]);
+      i += 1;
+    }
+    html.push(`<p>${renderInline(para.join(" "))}</p>`);
+  }
+
+  return html.join("\n");
+}
+
+export function renderMarkdown(src) {
+  const lines = String(src).replace(/\r\n?/g, "\n").split("\n");
+  return renderBlocks(lines);
+}

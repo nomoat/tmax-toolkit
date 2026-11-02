@@ -1,0 +1,152 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.3.2 effective-5.10 (swiftlang-6.3.2.1.108 clang-2100.1.1.101)
+// swift-module-flags: -target arm64-apple-ios16.4-simulator -enable-objc-interop -enable-library-evolution -swift-version 5 -O -enable-experimental-feature DebugDescriptionMacro -enable-bare-slash-regex -module-name BlinkFiles
+// swift-module-flags-ignorable: -no-verify-emitted-module-interface -formal-cxx-interoperability-mode=off -interface-compiler-version 6.3.2
+@_exported import BlinkFiles
+import Combine
+import Dispatch
+import Foundation
+import Swift
+import _Concurrency
+import _StringProcessing
+import _SwiftConcurrencyShims
+public struct CopyError : Swift.Error {
+  public let msg: Swift.String
+}
+public struct CopyAttributesFlag : Swift.OptionSet {
+  public var rawValue: Swift.UInt
+  public static let none: BlinkFiles.CopyAttributesFlag
+  public static let timestamp: BlinkFiles.CopyAttributesFlag
+  public static let permissions: BlinkFiles.CopyAttributesFlag
+  public init(rawValue: Swift.UInt)
+  public typealias ArrayLiteralElement = BlinkFiles.CopyAttributesFlag
+  public typealias Element = BlinkFiles.CopyAttributesFlag
+  public typealias RawValue = Swift.UInt
+}
+public struct CopyArguments {
+  public let inplace: Swift.Bool
+  public var preserve: BlinkFiles.CopyAttributesFlag
+  public let checkTimes: Swift.Bool
+  public init(inplace: Swift.Bool = true, preserve: BlinkFiles.CopyAttributesFlag = [.permissions], checkTimes: Swift.Bool = false)
+}
+extension BlinkFiles.Translator {
+  public func copy(from ts: [any BlinkFiles.Translator], args: BlinkFiles.CopyArguments = CopyArguments()) -> BlinkFiles.CopyProgressInfoPublisher
+  public func copy(from t: any BlinkFiles.Translator, newName: Swift.String, args: BlinkFiles.CopyArguments = CopyArguments()) -> BlinkFiles.CopyProgressInfoPublisher
+}
+public struct BlinkFilesError : Swift.Error, Foundation.LocalizedError {
+}
+extension BlinkFiles.Translator {
+  public func cloneWalkTo(_ path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+}
+extension BlinkFiles.Translator {
+  public func translatorsMatching(path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+}
+extension BlinkFiles.Translator {
+  public func directoryFilesAndAttributesResolvingLinks() -> Combine.AnyPublisher<[BlinkFiles.FileAttributes], any Swift.Error>
+  public func directoryFilesAndAttributesWithTargetLinks() -> Combine.AnyPublisher<[BlinkFiles.FileAttributes], any Swift.Error>
+  public func mkdir(name: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  public func mkPath(path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+}
+public struct LocalFileError : Swift.Error {
+  public let msg: Swift.String
+  public var description: Swift.String {
+    get
+  }
+}
+public class Local : BlinkFiles.Translator {
+  public var isDirectory: Swift.Bool {
+    get
+  }
+  public var isConnected: Swift.Bool {
+    get
+  }
+  public var fileType: Foundation.FileAttributeType {
+    get
+  }
+  public var current: Swift.String {
+    get
+  }
+  public init()
+  public func clone() -> any BlinkFiles.Translator
+  public func walkTo(_ path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  public func join(_ path: Swift.String) throws -> any BlinkFiles.Translator
+  public func directoryFilesAndAttributes() -> Combine.AnyPublisher<[BlinkFiles.FileAttributes], any Swift.Error>
+  public func create(name: Swift.String, mode: _DarwinFoundation2.mode_t = S_IRWXU) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  public func mkdir(name: Swift.String, mode: _DarwinFoundation2.mode_t = S_IRWXU | S_IRWXG | S_IRWXO) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  public func open(flags: Swift.Int32) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  public func remove() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  public func rmdir() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  public func stat() -> Combine.AnyPublisher<BlinkFiles.FileAttributes, any Swift.Error>
+  public func wstat(_ attrs: BlinkFiles.FileAttributes) -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  @objc deinit
+}
+@_hasMissingDesignatedInitializers public class LocalFile : BlinkFiles.File {
+  public func close() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  @objc deinit
+}
+extension BlinkFiles.LocalFile : BlinkFiles.Reader, BlinkFiles.WriterTo {
+  public func read(max length: Swift.Int) -> Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>
+  public func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+extension BlinkFiles.LocalFile : BlinkFiles.Writer {
+  public func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public typealias BlinkFilesAttributeKey = Foundation.FileAttributeKey
+extension Foundation.FileAttributeKey {
+  public static let name: Foundation.FileAttributeKey
+  public static let symbolicLinkTargetInfo: Foundation.FileAttributeKey
+}
+public typealias FileAttributes = [BlinkFiles.BlinkFilesAttributeKey : Any]
+public protocol Translator : BlinkFiles.CopierFrom {
+  var fileType: Foundation.FileAttributeType { get }
+  var isDirectory: Swift.Bool { get }
+  var current: Swift.String { get }
+  var isConnected: Swift.Bool { get }
+  func clone() -> any BlinkFiles.Translator
+  func walkTo(_ path: Swift.String) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  func join(_ path: Swift.String) throws -> any BlinkFiles.Translator
+  func directoryFilesAndAttributes() -> Combine.AnyPublisher<[BlinkFiles.FileAttributes], any Swift.Error>
+  func create(name: Swift.String, mode: _DarwinFoundation2.mode_t) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  func mkdir(name: Swift.String, mode: _DarwinFoundation2.mode_t) -> Combine.AnyPublisher<any BlinkFiles.Translator, any Swift.Error>
+  func open(flags: Swift.Int32) -> Combine.AnyPublisher<any BlinkFiles.File, any Swift.Error>
+  func remove() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  func rmdir() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+  func stat() -> Combine.AnyPublisher<BlinkFiles.FileAttributes, any Swift.Error>
+  func wstat(_ attrs: BlinkFiles.FileAttributes) -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+}
+public protocol Reader {
+  func read(max length: Swift.Int) -> Combine.AnyPublisher<Dispatch.DispatchData, any Swift.Error>
+}
+public protocol Writer {
+  func write(_ buf: Dispatch.DispatchData, max length: Swift.Int) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public protocol WriterTo {
+  func writeTo(_ w: any BlinkFiles.Writer) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public protocol ReaderFrom {
+  func readFrom(_ r: any BlinkFiles.Reader) -> Combine.AnyPublisher<Swift.Int, any Swift.Error>
+}
+public protocol File : BlinkFiles.Reader, BlinkFiles.Writer {
+  func close() -> Combine.AnyPublisher<Swift.Bool, any Swift.Error>
+}
+public struct CopyProgressInfo {
+  public let name: Swift.String
+  public let written: Swift.UInt64
+  public let size: Swift.UInt64
+  public init(name: Swift.String, written: Swift.UInt64, size: Swift.UInt64)
+}
+public typealias CopyProgressInfoPublisher = Combine.AnyPublisher<BlinkFiles.CopyProgressInfo, any Swift.Error>
+public protocol CopierFrom {
+  func copy(from ts: [any BlinkFiles.Translator], args: BlinkFiles.CopyArguments) -> BlinkFiles.CopyProgressInfoPublisher
+}
+public protocol CopierTo {
+  func copy(to ts: any BlinkFiles.Translator) -> BlinkFiles.CopyProgressInfoPublisher
+}
+extension Combine.AnyPublisher {
+  @inlinable public static func just(_ output: Output) -> Combine.AnyPublisher<Output, Failure> {
+    .init(Just(output).setFailureType(to: Failure.self))
+  }
+  @inlinable public static func fail(error: Failure) -> Combine.AnyPublisher<Output, Failure> {
+    .init(Fail(error: error))
+  }
+}
