@@ -59,7 +59,10 @@ and 16 streams per Controller process. Client/provider queues are bounded.
 Disconnects terminate both the provider socket and decoder process.
 
 The shared terminal viewer also uses this recorder through its same-origin
-share-scoped ASR relay. It requires active terminal control. Transcription stays
+share-scoped ASR relay. Its toolbar **Input** button opens the existing draft
+without starting capture; tap it again (or Escape in the draft) to close and
+cancel recording. Drafts survive reload/navigation within the tab, keyed by
+shared session. It requires active terminal control. Transcription stays
 in a local draft until Insert; Enter is separate. The Worker sends a short-lived
 service assertion only to the Controller, retaining the owner's stable ASR identity
 and limits. Main-app browser cookies and native Bearer authentication are unchanged.

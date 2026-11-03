@@ -56,11 +56,21 @@ agent binaries, analytics, or tunnel service is used.
 ### Live dictation
 
 Controllable browser shares and Temporary Terminals include the same compact
-Start/Cancel/Stop/Wait control as the main app. Speech appears in an editable
-draft. **Insert** pastes the text; **Enter remains a separate action**. Newlines
+Start/Cancel/Stop/Wait control as the main app. Tap **Input** in the existing
+toolbar to open the text/voice draft; opening it never starts the microphone.
+Tap **Input** again or press Escape in the draft to close it and cancel capture.
+The 72 × 48 CSS pixel entry point also remains available on touch and Vision Pro.
+The existing Settings chooser uses the same Automatic, Doubao and WeChat modes
+and preference key as the main app (browser storage remains scoped to its origin).
+Speech appears in the editable draft. **Insert** pastes the text;
+**Enter remains a separate action**. Newlines
 and terminal control characters are removed before inserting. Recording never
 sends terminal input. Lock, loss of control, disconnect, hidden tab or share expiry
 stops recording and keeps the latest local draft. Read-only viewers cannot use ASR.
+Drafts are scoped to each shared session in this tab's sessionStorage, so reloads
+and navigation back retain unsent text without carrying it into another share.
+Storage failures fall back to the current page's in-memory draft. Closing the tab
+ends this draft storage. Failed/blocked insertion keeps the draft.
 
 The viewer uses a separate same-origin ASR WebSocket. The Worker validates the
 share capability and Origin; its Durable Object also requires the active viewer

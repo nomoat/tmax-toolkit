@@ -6,8 +6,7 @@ import { createViewportFollow } from './viewport';
 import { installHistoryFill } from './history-fill';
 import { installMobileInput } from './mobile-input';
 import { InputControl } from './input-control';
-import { bindStreamingDictation } from '../../../public/streaming-asr.js';
-import { dictationTerminalText } from './dictation-input';
+import { installInputComposer } from './input-composer';
 const speechDialog = document.querySelector<HTMLDialogElement>('#speech-settings-dialog')!;
 const speechService = document.querySelector<HTMLSelectElement>('#speech-service')!;
 const speechDescription = document.querySelector<HTMLElement>('#speech-service-description')!;
@@ -42,13 +41,7 @@ const uploadStatus = document.querySelector<HTMLElement>('#upload-status')!;
 const attachment = document.querySelector<HTMLElement>('#attachment')!;
 const filePaths = document.querySelector<HTMLTextAreaElement>('#file-paths')!;
 const insertPaths = document.querySelector<HTMLButtonElement>('#insert-paths')!;
-const dictationPanel = document.querySelector<HTMLElement>('#dictation')!;
-const dictationInput = document.querySelector<HTMLTextAreaElement>('#dictation-input')!;
-const dictationButton = document.querySelector<HTMLButtonElement>('#dictation-toggle')!;
-const dictationInsert = document.querySelector<HTMLButtonElement>('#dictation-insert')!;
-const dictationClear = document.querySelector<HTMLButtonElement>('#dictation-clear')!;
-const dictationStatus = document.querySelector<HTMLElement>('#dictation-status')!;
-visionTextPreview(dictationInput);
+// The explicit Input entry opens a normal editable draft on Vision too.
 visionTextPreview(filePaths);
 let uploading = false;
 const uploads = new Map<string, { resolve: (value: any) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
@@ -229,8 +222,7 @@ function renderControl() {
 }
 function setWritable(value: boolean) {
   canWrite = value;
-  if (!value) dictation.cancel();
-  renderDictation();
+  inputComposer.refresh();
   terminal.options.disableStdin = !value;
   // Prevent mobile keyboards/dictation from opening on a read-only terminal.
   // Keep focus available for selection and local history keyboard shortcuts.
@@ -358,36 +350,16 @@ document.addEventListener('paste', event => {
   event.preventDefault(); event.stopImmediatePropagation();
   void uploadFiles(Array.from(event.clipboardData.files));
 }, true);
-const dictation = bindStreamingDictation({
-  button: dictationButton, input: dictationInput, controls: [dictationClear], submitButton: dictationInsert,
-  getText: () => dictationInput.value,
-  setText: (text: string) => { dictationInput.value = text; },
-  setStatus: (text: string) => { dictationStatus.textContent = text; },
-  isBlocked: () => !canWrite,
-  disableWhenBlocked: true,
-  onActive: () => renderDictation(),
-  getStreamUrl: () => `/api/session/${sessionId}/asr?${new URLSearchParams({ token: capability, viewerToken })}`,
-});
-function renderDictation() {
-  dictationPanel.hidden = !inputControl.status?.allowControl;
-  dictationInput.readOnly = !canWrite || dictation.active;
-  dictationInsert.disabled = !canWrite || (!dictation.active && !dictationTerminalText(dictationInput.value).trim());
-  dictationClear.disabled = dictation.active || !dictationInput.value;
-  dictation.refresh();
-}
-dictationInput.addEventListener('input', renderDictation);
-dictationClear.onclick = () => { dictationInput.value = ''; dictationStatus.textContent = ''; renderDictation(); };
-dictationInsert.onclick = () => {
-  if (!canWrite) return;
-  void dictation.submit(async (value: string) => {
-    if (!canWrite) return;
-    const text = dictationTerminalText(value);
-    if (!text.trim()) return;
+const inputComposer = installInputComposer({
+  sessionId,
+  writable: () => canWrite,
+  streamUrl: () => `/api/session/${sessionId}/asr?${new URLSearchParams({ token: capability, viewerToken })}`,
+  insert: (text: string) => {
+    if (textSelection.open || !canWrite || socket?.readyState !== WebSocket.OPEN) return false;
     terminal.paste(text);
-    dictationInput.value = '';
-    dictationStatus.textContent = 'Text inserted · Press Enter separately to submit';
-  }).finally(renderDictation);
-};
+    return true;
+  },
+});
 reconnect.onclick = () => { attempts = 0; void connect(); };
 document.addEventListener('visibilitychange', () => { if (document.hidden) { stop(); status.textContent = 'Paused'; } else { attempts = 0; void connect(); } });
 window.addEventListener('pagehide', stop);

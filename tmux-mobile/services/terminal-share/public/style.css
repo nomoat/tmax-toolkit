@@ -28,3 +28,6 @@ body[data-control="none"] #status{font-weight:700;color:#cb4b16}body[data-contro
 #speech-settings-dialog p{margin:0;line-height:1.5}
 #speech-service{width:100%;min-height:44px;font-size:16px}
 #speech-service-status:empty{display:none}
+
+/* One larger entry point; keep the other toolbar controls unchanged. */
+#input-open{min-width:72px;min-height:48px;touch-action:manipulation;border-color:var(--accent);color:var(--accent)}
