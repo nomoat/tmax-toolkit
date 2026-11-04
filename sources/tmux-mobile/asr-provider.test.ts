@@ -20,4 +20,9 @@ const raced = createAsrPreference({ ...storage, getItem: () => new Promise(resol
 const pending = raced.load(); await raced.setMode('wetype'); finishRead('doubao'); await pending;
 assert.equal(raced.getSnapshot(), 'wetype');
 await Promise.all([preference.setMode('doubao'), preference.setMode('wetype')]); assert.equal(stored, 'wetype');
+
+assert.equal(normalizeAsrMode("gemini"), "gemini");
+assert.equal(asrStatus("recording", "gemini"), "Listening · Gemini · Stop to finish, or Send");
+await preference.setMode("gemini");
+assert.equal(preference.getSnapshot(), "gemini");
 });

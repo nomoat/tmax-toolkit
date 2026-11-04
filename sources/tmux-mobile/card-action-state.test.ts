@@ -30,6 +30,6 @@ describe('shared card actions', () => {
     const source = readFileSync(new URL('./card-actions.js', import.meta.url));
     const receipt = JSON.parse(readFileSync(new URL('./card-actions.source.json', import.meta.url), 'utf8'));
     expect(createHash('sha256').update(source).digest('hex')).toBe(receipt.sha256);
-    expect(receipt.source).toBe('cjzeroxaa/tmux-mobile:public/card-actions.js');
+    expect(receipt.source).toBe('nomoat/tmax-toolkit:tmux-mobile/public/card-actions.js');
   });
 });

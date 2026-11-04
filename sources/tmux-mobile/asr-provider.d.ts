@@ -1,4 +1,4 @@
-export type AsrMode = "auto" | "doubao" | "wetype";
+export type AsrMode = "auto" | "doubao" | "wetype" | "gemini";
 export const ASR_PREFERENCE_KEY: string;
 export const ASR_OPTIONS: { value: AsrMode; label: string; description: string }[];
 export function normalizeAsrMode(value: unknown): AsrMode;

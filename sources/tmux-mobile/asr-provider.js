@@ -1,11 +1,12 @@
 export const ASR_PREFERENCE_KEY = "tmux-mobile.asr-provider.v1";
 export const ASR_OPTIONS = [
-  { value: "auto", label: "Automatic", description: "Use Doubao first; switch to WeChat if it fails." },
+  { value: "auto", label: "Automatic", description: "Try Doubao, then WeChat, then Gemini when configured." },
   { value: "doubao", label: "Doubao", description: "Use Doubao only. No automatic switch." },
   { value: "wetype", label: "WeChat", description: "Use WeChat only. No automatic switch." },
+  { value: "gemini", label: "Gemini", description: "Use Gemini only. Requires server configuration." },
 ];
 export const normalizeAsrMode = value => ASR_OPTIONS.some(option => option.value === value) ? value : "auto";
-export const asrProviderName = value => value === "wetype" ? "WeChat" : value === "doubao" ? "Doubao" : "";
+export const asrProviderName = value => value === "gemini" ? "Gemini" : value === "wetype" ? "WeChat" : value === "doubao" ? "Doubao" : "";
 export function asrStatus(stage, provider) {
   const name = asrProviderName(provider), suffix = name ? ` · ${name}` : "";
   if (stage === "finishing") return `Microphone off${suffix} · Finishing transcription…`;
