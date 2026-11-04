@@ -21,6 +21,7 @@ export BUILD_TIME="${BUILD_TIME:-$(date -u '+%Y-%m-%dT%H:%M:%SZ')}"
 export JS_UPDATE_VERSION="${JS_UPDATE_VERSION:-$(date -u '+%Y%m%d.%H%M%S')}"
 
 if [[ "$CHANNEL" == "production" ]]; then
+  node scripts/sync-asr.mjs --check
   node scripts/sync-card-actions.mjs --check --deployed https://eng.xyznot.com
 fi
 
