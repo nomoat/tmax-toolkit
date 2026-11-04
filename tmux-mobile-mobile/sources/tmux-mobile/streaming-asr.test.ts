@@ -37,7 +37,8 @@ describe("streaming dictation", () => {
     socket.message({ type: "provider", provider: "wetype" }); socket.message({ type: "ready" }); await ready;
     socket.message({ type: "provider", provider: "invalid" });
     socket.message({ type: "transcript", provider: "doubao", text: "hello" });
-    expect(providers).toEqual(["wetype", "doubao"]); session.cancel();
+    socket.message({ type: "provider", provider: "gemini" });
+    expect(providers).toEqual(["wetype", "doubao", "gemini"]); session.cancel();
   });
   it("replaces interim text, keeps the original draft and accepts final corrections", async () => {
     const socket = new FakeSocket(),

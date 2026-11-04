@@ -60,7 +60,7 @@ Start/Cancel/Stop/Wait control as the main app. Tap **Input** in the existing
 toolbar to open the text/voice draft; opening it never starts the microphone.
 Tap **Input** again or press Escape in the draft to close it and cancel capture.
 The 72 × 48 CSS pixel entry point also remains available on touch and Vision Pro.
-The existing Settings chooser uses the same Automatic, Doubao and WeChat modes
+The existing Settings chooser uses the same Automatic, Doubao, WeChat and Gemini modes
 and preference key as the main app (browser storage remains scoped to its origin).
 Speech appears in the editable draft. **Insert** pastes the text;
 **Enter remains a separate action**. Newlines
@@ -71,6 +71,17 @@ Drafts are scoped to each shared session in this tab's sessionStorage, so reload
 and navigation back retain unsent text without carrying it into another share.
 Storage failures fall back to the current page's in-memory draft. Closing the tab
 ends this draft storage. Failed/blocked insertion keeps the draft.
+
+Keyboard: **Alt + Shift + X** opens/focuses the draft, **Alt + Shift + R** starts
+or stops recording, and **Alt + Shift + Enter** inserts the final text plus
+Enter once. Stop alone never sends. Keyboard Send waits for final transcription
+and is cancelled by close, disconnect, control loss or navigation. IME and
+repeated keydowns cannot send. The existing Insert and Enter buttons keep their
+separate meanings; Ctrl + Shift + Enter still locks/unlocks input.
+
+Gemini is provided by the Controller using the existing report-service key;
+the Worker relay and its credentials are unchanged. Build/publish this viewer
+with the updated Controller/Web for the new provider and extended deadlines.
 
 The viewer uses a separate same-origin ASR WebSocket. The Worker validates the
 share capability and Origin; its Durable Object also requires the active viewer

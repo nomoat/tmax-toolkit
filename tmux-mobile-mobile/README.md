@@ -160,7 +160,12 @@ Use the existing Expo AudioStream when the binary exposes it. Older binaries
 stream new bytes from one AAC ADTS/WAV recording through the Controller decoder.
 No native dependency changes are needed. Ship runtime 7 iOS/Android and runtime 6
 Android independently. `streaming-asr-session.js` matches the Web source at
-`tmux-mobile/public/streaming-asr-session.js`; keep both copies synchronized.
+`tmux-mobile/public/streaming-asr-session.js`. Run `node scripts/sync-asr.mjs`
+from this component to generate both ASR transport and provider preferences
+from Web, then `node scripts/sync-asr.mjs --check` to verify parity. Gemini uses
+the existing server-side key; the client only sends a provider mode. Publish
+the synchronized JavaScript to expose Gemini and allow the full third-provider
+finalization deadline. No native module change is required.
 
 ## App FPS monitor (2026-10-27)
 

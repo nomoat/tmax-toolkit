@@ -109,7 +109,7 @@ export function createStreamingAsrSession({
             end(
               "Streaming speech did not connect. Try the regular microphone.",
             ),
-          20000,
+          30000,
         );
         socket.onopen = () => {
           if (!ended) socket.send(JSON.stringify({ type: "start", format, ...(providerMode ? { providerMode } : {}) }));
@@ -122,13 +122,13 @@ export function createStreamingAsrSession({
               ready = true;
               clearTimeout(timer);
               resolveReady();
-            } else if (value.type === "provider" && ["doubao", "wetype"].includes(value.provider)) {
+            } else if (value.type === "provider" && ["doubao", "wetype", "gemini"].includes(value.provider)) {
               onProvider(value.provider);
             } else if (
               value.type === "transcript" &&
               typeof value.text === "string"
             ) {
-              if (["doubao", "wetype"].includes(value.provider)) onProvider(value.provider);
+              if (["doubao", "wetype", "gemini"].includes(value.provider)) onProvider(value.provider);
               onTranscript(value.text, value.final === true);
             }
             else if (value.type === "done") end();
@@ -167,7 +167,7 @@ export function createStreamingAsrSession({
       finishing = true;
       timer = setTimeout(
         () => end("Final transcription timed out. Your current text was kept."),
-        20000,
+        65000,
       );
       try {
         socket.send(JSON.stringify({ type: "finish" }));

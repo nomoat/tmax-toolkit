@@ -18,3 +18,8 @@ const pending = raced.load(); await raced.setMode('wetype'); finishRead('doubao'
 assert.equal(raced.getSnapshot(), 'wetype');
 await Promise.all([preference.setMode('doubao'), preference.setMode('wetype')]); assert.equal(stored, 'wetype');
 console.log('Speech preferences: persistence, invalid values, failed writes, overlapping saves and late reads passed.');
+
+assert.equal(normalizeAsrMode("gemini"), "gemini");
+assert.equal(asrStatus("recording", "gemini"), "Listening · Gemini · Stop to finish, or Send");
+await preference.setMode("gemini");
+assert.equal(preference.getSnapshot(), "gemini");

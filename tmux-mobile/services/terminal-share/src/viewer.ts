@@ -354,9 +354,11 @@ const inputComposer = installInputComposer({
   sessionId,
   writable: () => canWrite,
   streamUrl: () => `/api/session/${sessionId}/asr?${new URLSearchParams({ token: capability, viewerToken })}`,
-  insert: (text: string) => {
+  shortcutsAllowed: () => !document.hidden && !textSelection.open && !speechDialog.open,
+  insert: (text: string, sendEnter: boolean) => {
     if (textSelection.open || !canWrite || socket?.readyState !== WebSocket.OPEN) return false;
     terminal.paste(text);
+    if (sendEnter) sendInput('\r');
     return true;
   },
 });

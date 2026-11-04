@@ -5409,6 +5409,9 @@ const TEMPORARY_UPLOADS = createTemporaryUploads({ storage: ARTIFACT_STORAGE, se
 // (the default), the controller advertises no capability and connectors do no
 // transcript I/O.
 let PROGRESS_REPORTS = null;
+// Reuse the report service's server-only key, including encrypted storage.
+// The ASR adapter chooses its own model; report configuration is unchanged.
+let GEMINI_ASR_API_KEY = process.env.GEMINI_API_KEY || '';
 let reportInventories = () => [];
 let TRANSCRIPT_ARCHIVE = null;
 let CONVERSATION_READER = null;
@@ -5502,6 +5505,7 @@ if (
     try {
       const config = await loadReportConfig(transcriptStorage);
       if (config) {
+        GEMINI_ASR_API_KEY = config.apiKey;
         PROGRESS_REPORTS = createProgressReports({ storage: transcriptStorage,
           summarize: createGeminiSummarizer(config), model: config.model,
           collectingSince: config.collectingSince,
@@ -6542,6 +6546,7 @@ if (MODE.kind === "register") {
       return REQUIRE_BROWSER_AUTH ? authenticateBrowser(req) : { userId: String(process.env.TMUX_MOBILE_USER || "default") };
     },
     origin: requestOrigin, secret: process.env.SESSION_SECRET,
+    getGeminiApiKey: () => GEMINI_ASR_API_KEY,
   });
 
   server.listen(PORT, HOST, () => {

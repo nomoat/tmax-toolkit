@@ -1,20 +1,24 @@
 import { EventEmitter } from "node:events";
 import { FreeAsrSession } from "./free-asr.mjs";
 import { WeTypeAsrSession } from "./wetype-asr.mjs";
+import { GeminiAsrSession } from "./gemini-asr.mjs";
 
-export const PROVIDERS = { doubao: FreeAsrSession, wetype: WeTypeAsrSession };
+export const PROVIDERS = { doubao: FreeAsrSession, wetype: WeTypeAsrSession, gemini: GeminiAsrSession };
 
-// Keep one bounded in-memory PCM copy until completion so either provider can
+// Keep one bounded in-memory PCM copy until completion so each provider can
 // replay the utterance after a failure. No client reconnect or microphone restart.
 export class FailoverAsrSession extends EventEmitter {
-  constructor({ deviceId, providers = ["doubao", "wetype"], createProvider = (name, options) => new PROVIDERS[name](options), connectMs = 5000, finishMs = 6000 }) {
+  constructor({ deviceId, geminiApiKey, providers = ["doubao", "wetype", ...(geminiApiKey ? ["gemini"] : [])], createProvider = (name, options) => new PROVIDERS[name](options), connectMs = 5000, finishMs = 6000, geminiConnectMs = 10000, geminiFinishMs = 15000 }) {
     super();
     this.options = { deviceId };
+    this.geminiApiKey = geminiApiKey;
     this.providers = [...new Set(providers)];
     if (!this.providers.length || this.providers.some((name) => !PROVIDERS[name])) throw new Error("Invalid speech provider");
     this.createProvider = createProvider;
     this.connectMs = connectMs;
     this.finishMs = finishMs;
+    this.geminiConnectMs = geminiConnectMs;
+    this.geminiFinishMs = geminiFinishMs;
     this.attempt = -1;
     this.audioChunks = [];
     this.size = 0;
@@ -31,13 +35,13 @@ export class FailoverAsrSession extends EventEmitter {
     this.finishSent = false;
     if (this.attempt >= this.providers.length) {
       this.close();
-      const service = this.providers.length > 1 ? "Both speech services are" : this.providers[0] === "wetype" ? "WeChat speech is" : "Doubao speech is";
+      const service = this.providers.length > 2 ? "All speech services are" : this.providers.length > 1 ? "Both speech services are" : `${{ wetype: 'WeChat', doubao: 'Doubao', gemini: 'Gemini' }[this.providers[0]]} speech is`;
       this.emit("error", new Error(`${service} unavailable. Your current text was kept; please try again.`));
       return;
     }
     const name = this.providers[this.attempt];
     try {
-      const provider = this.createProvider(name, this.options);
+      const provider = this.createProvider(name, name === 'gemini' ? { ...this.options, apiKey: this.geminiApiKey, connectMs: this.geminiConnectMs, finishMs: this.geminiFinishMs } : this.options);
       this.provider = provider;
       const current = () => !this.closed && this.provider === provider;
       provider.on("error", () => { if (current()) this.next(); });
@@ -61,7 +65,7 @@ export class FailoverAsrSession extends EventEmitter {
         this.close();
         this.emit("done");
       });
-      this.timer = setTimeout(() => this.next(), this.connectMs);
+      this.timer = setTimeout(() => this.next(), name === 'gemini' ? this.geminiConnectMs : this.connectMs);
       provider.start();
     } catch { this.next(); }
   }
@@ -91,7 +95,7 @@ export class FailoverAsrSession extends EventEmitter {
       if (this.cursor < this.audioChunks.length) this.pumpTimer = setTimeout(() => this.pump(), 1);
       else if (this.finishing && !this.finishSent) {
         this.finishSent = true;
-        this.timer = setTimeout(() => this.next(), this.finishMs);
+        this.timer = setTimeout(() => this.next(), this.providers[this.attempt] === 'gemini' ? this.geminiFinishMs : this.finishMs);
         provider.finish();
       }
     } catch { this.next(); }
@@ -114,5 +118,6 @@ export class FailoverAsrSession extends EventEmitter {
     this.closed = true;
     this.disconnect();
     this.audioChunks = [];
+    this.geminiApiKey = undefined;
   }
 }

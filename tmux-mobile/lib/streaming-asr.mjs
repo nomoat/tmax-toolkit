@@ -5,14 +5,16 @@ import { FailoverAsrSession } from "./asr-failover.mjs";
 
 export const ASR_PATH = "/api/asr/stream";
 export const MAX_AUDIO_BYTES = 20 * 1024 * 1024;
-export function asrProviderOrder(message) {
+export function asrProviderOrder(message, { geminiAvailable = false } = {}) {
+  const fallback = geminiAvailable ? ["gemini"] : [];
   if (message.providerMode !== undefined) {
-    if (!["auto", "doubao", "wetype"].includes(message.providerMode)) throw new Error("Unsupported speech provider mode");
-    return message.providerMode === "auto" ? ["doubao", "wetype"] : [message.providerMode];
+    if (!["auto", "doubao", "wetype", "gemini"].includes(message.providerMode)) throw new Error("Unsupported speech provider mode");
+    if (message.providerMode === 'gemini' && !geminiAvailable) throw new Error('Gemini speech is not configured on this server.');
+    return message.providerMode === "auto" ? ["doubao", "wetype", ...fallback] : [message.providerMode];
   }
   // Preserve the previous API's preferred-provider behavior for older clients.
   if (message.provider !== undefined && !["doubao", "wetype"].includes(message.provider)) throw new Error("Unsupported speech provider");
-  return message.provider === "wetype" ? ["wetype", "doubao"] : ["doubao", "wetype"];
+  return message.provider === "wetype" ? ["wetype", "doubao", ...fallback] : ["doubao", "wetype", ...fallback];
 }
 export function decoderArguments(format) {
   if (!["wav", "aac"].includes(format))
@@ -53,6 +55,7 @@ export function attachStreamingAsr(
     authenticate,
     origin,
     secret,
+    getGeminiApiKey = () => process.env.GEMINI_API_KEY || '',
     createSession = (options) => new FailoverAsrSession(options),
     spawnDecoder = (format) =>
       spawn("ffmpeg", decoderArguments(format), {
@@ -135,7 +138,7 @@ export function attachStreamingAsr(
       const connectTimer = setTimeout(
         () =>
           fail("Streaming speech did not connect. Try the regular microphone."),
-        15000,
+        25000,
       );
       const limitTimer = setTimeout(
         () =>
@@ -194,7 +197,8 @@ export function attachStreamingAsr(
             if (!["pcm16", "wav", "aac"].includes(message.format))
               throw new Error("Unsupported streaming audio format");
             started = true;
-            session = createSession({ deviceId, providers: asrProviderOrder(message) });
+            const geminiApiKey = getGeminiApiKey();
+            session = createSession({ deviceId, geminiApiKey, providers: asrProviderOrder(message, { geminiAvailable: Boolean(geminiApiKey) }) });
             session.on("provider", result => send({ type: "provider", ...result }));
             session.on("error", (error) => fail(error.message));
             session.on("transcript", (result) =>
@@ -245,7 +249,7 @@ export function attachStreamingAsr(
                 fail(
                   "Final transcription timed out. Your current text was kept.",
                 ),
-              15000,
+              60000,
             );
             if (decoder) decoder.stdin.end();
             else session.finish();

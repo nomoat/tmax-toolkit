@@ -20,6 +20,7 @@ export function bindStreamingDictation({
   getStreamUrl = () => "/api/asr/stream",
   getProviderMode = readAsrMode,
   disableWhenBlocked = false,
+  shortcutHint = '',
 }) {
   // An already open page may still have the previous HTML during a rollout.
   if (!button) return { cancel() {}, refresh() {}, submit: async send => { await send(getText()); }, active: false };
@@ -64,7 +65,7 @@ export function bindStreamingDictation({
     button.dataset.streamingState = mode;
     button.classList.toggle("recording", mode === "recording");
     button.setAttribute("aria-pressed", String(mode === "recording"));
-    button.title = control.hint;
+    button.title = control.hint + (shortcutHint ? ` (${shortcutHint})` : '');
     button.setAttribute("aria-label", control.hint);
     button.disabled = submitting || control.disabled || (disableWhenBlocked && !current && isBlocked());
     const icons = {

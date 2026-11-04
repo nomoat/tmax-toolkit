@@ -10,4 +10,5 @@ export function bindStreamingDictation(options: {
   controls?: (HTMLButtonElement | HTMLInputElement | HTMLTextAreaElement | null)[];
   getStreamUrl?: () => string;
   disableWhenBlocked?: boolean;
+  shortcutHint?: string;
 }): { cancel(): void; submit(send: (text: string) => Promise<void>): Promise<void>; refresh(): void; readonly active: boolean };

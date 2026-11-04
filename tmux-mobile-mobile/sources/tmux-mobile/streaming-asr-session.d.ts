@@ -24,7 +24,7 @@ export function createStreamingAsrSession(options: {
   url: string;
   format?: "pcm16" | "wav" | "aac";
   providerMode?: import("./asr-provider").AsrMode;
-  onProvider?: (provider: "doubao" | "wetype") => void;
+  onProvider?: (provider: "doubao" | "wetype" | "gemini") => void;
   createSocket?: (url: string) => WebSocket;
   onTranscript?: (text: string, final: boolean) => void;
   onEnd?: (error?: string) => void;

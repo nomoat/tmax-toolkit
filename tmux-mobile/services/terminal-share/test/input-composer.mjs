@@ -62,13 +62,14 @@ function fixture({ sessionId = 'share-a', store = storage() } = {}) {
   globalThis.sessionStorage = store;
   globalThis.localStorage = storage();
   microphone = undefined; calls = 0;
-  let writable = true, accept = true;
-  const sent = [];
+  let writable = true, accept = true, allowed = true;
+  const sent = [], enter = [];
   const composer = installInputComposer({ sessionId, writable: () => writable,
     streamUrl: () => `/api/session/${sessionId}/asr?token=capability&viewerToken=viewer`,
-    insert: text => { if (!accept) return false; sent.push(text); return true; },
+    shortcutsAllowed: () => allowed,
+    insert: (text, sendEnter) => { if (!accept) return false; sent.push(text); enter.push(sendEnter); return true; },
   });
-  const f = { composer, sent, store, elements, open: elements['input-open'], panel: elements.dictation,
+  const f = { composer, sent, enter, store, elements, allowShortcuts(value) { allowed = value; }, open: elements['input-open'], panel: elements.dictation,
     input: elements['dictation-input'], voice: elements['dictation-toggle'], insert: elements['dictation-insert'],
     type(text) { this.input.value = text; this.input.dispatchEvent(new Event('input')); },
     writable(value) { writable = value; composer.refresh(); },
@@ -105,6 +106,9 @@ test('toolbar opens existing draft without recording; close and IME-safe Escape 
   };
   assert.equal(escape(true).defaultPrevented, false);
   assert.equal(f.panel.hidden, false);
+  document.dispatchEvent(new Event('compositionstart'));
+  assert.equal(escape(false).defaultPrevented, false);
+  document.dispatchEvent(new Event('compositionend'));
   assert.equal(escape(false).defaultPrevented, true);
   assert.equal(f.panel.hidden, true);
   assert.equal(document.activeElement, f.open);
@@ -145,7 +149,7 @@ test('read-only links can reveal input but cannot type, record or insert; contro
 });
 
 test('all existing provider modes use the share-scoped channel; Stop only updates the local draft', async () => {
-  for (const provider of ['auto', 'doubao', 'wetype']) {
+  for (const provider of ['auto', 'doubao', 'wetype', 'gemini']) {
     const f = fixture(); localStorage.setItem('tmux-mobile.asr-provider.v1', provider);
     f.open.click(); f.type('Base'); const ws = await f.record();
     assert.match(ws.url, /^wss:\/\/share.example\/api\/session\/share-a\/asr\?token=capability&viewerToken=viewer$/);
@@ -192,4 +196,51 @@ test('closing while microphone permission is pending releases a late stream with
   grant(stream()); await tick();
   assert.equal(track.readyState, 'ended'); assert.equal(Socket.instances.length, count);
   assert.equal(f.input.value, 'keep'); assert.equal(f.panel.hidden, true);
+});
+
+const shortcut = (code, extra = {}) => {
+  const event = new Event('keydown', { cancelable: true });
+  Object.assign(event, { code, key: code === 'Enter' ? 'Enter' : code.slice(-1), altKey: true, shiftKey: true, ...extra });
+  document.dispatchEvent(event); return event;
+};
+test('keyboard opens from terminal focus, records/stops and sends final text plus Enter once', async () => {
+  const f = fixture(); const terminal = new Element(); terminal.focus();
+  assert(shortcut('KeyX').defaultPrevented); assert.equal(document.activeElement, f.input);
+  f.type('base');
+  shortcut('KeyR'); await tick(); const ws = Socket.instances.at(-1); ws.message({type:'ready'}); await tick();
+  transcript(ws,'partial');
+  shortcut('KeyR'); assert.equal(track.readyState,'ended'); assert.deepEqual(f.sent,[]);
+  shortcut('Enter'); shortcut('Enter',{repeat:true}); shortcut('Enter');
+  await finish(ws,'final');
+  assert.deepEqual(f.sent,['base final']); assert.deepEqual(f.enter,[true]);
+  assert.equal(f.elements['dictation-status'].textContent,'Text sent with Enter');
+});
+test('keyboard send ignores IME/repeats/normal keys/dialogs and never sends through control loss', async () => {
+  const f=fixture();
+  assert(!shortcut('KeyX',{isComposing:true}).defaultPrevented);assert(f.panel.hidden);
+  document.dispatchEvent(new Event('compositionstart'));
+  assert(!shortcut('KeyX').defaultPrevented);document.dispatchEvent(new Event('compositionend'));
+  assert(!shortcut('KeyX',{keyCode:229}).defaultPrevented);
+  document.dispatchEvent(new Event('compositionstart'));
+  window.dispatchEvent(new Event('pagehide'));
+  assert(shortcut('KeyX').defaultPrevented, 'navigation clears stale composition');
+  assert(!shortcut('KeyX',{altKey:false}).defaultPrevented);
+  assert(!shortcut('KeyX',{ctrlKey:true}).defaultPrevented);
+  f.allowShortcuts(false);assert(!shortcut('KeyX').defaultPrevented);f.allowShortcuts(true);
+  shortcut('KeyX');f.type('draft');
+  assert(!shortcut('Enter',{altKey:false,shiftKey:false}).defaultPrevented);
+  shortcut('Enter',{repeat:true});await tick();assert.deepEqual(f.sent,[]);
+  f.writable(false);shortcut('Enter');shortcut('KeyR');await tick();assert.equal(calls,0);assert.deepEqual(f.sent,[]);
+  f.writable(true); const ws=await f.record(); transcript(ws,'partial');
+  shortcut('Enter');f.writable(false);await finish(ws,'late final');
+  assert.deepEqual(f.sent,[]);assert.equal(f.input.value,'draft partial');
+});
+test('keyboard Send cancelled by closing or pagehide cannot fire later, and Insert stays text-only', async () => {
+  for(const reason of ['close','pagehide']){
+    const f=fixture();shortcut('KeyX');const ws=await f.record();transcript(ws,'keep');shortcut('Enter');
+    if(reason==='close')f.open.click();else window.dispatchEvent(new Event('pagehide'));
+    await finish(ws,'late');assert.deepEqual(f.sent,[]);assert.equal(f.input.value,'keep');
+  }
+  const f=fixture();shortcut('KeyX');f.type('typed');f.insert.click();await tick();
+  assert.deepEqual(f.enter,[false]);
 });
