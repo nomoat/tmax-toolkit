@@ -5503,7 +5503,7 @@ if (
     // Reports consume only newly committed records and never add a dependency
     // to transcript ACKs. A missing key disables reports, not the archive.
     try {
-      const config = await loadReportConfig(transcriptStorage);
+      const config = await loadReportConfig(transcriptStorage, process.env, { configStorage: ARTIFACT_STORAGE });
       if (config) {
         GEMINI_ASR_API_KEY = config.apiKey;
         PROGRESS_REPORTS = createProgressReports({ storage: transcriptStorage,

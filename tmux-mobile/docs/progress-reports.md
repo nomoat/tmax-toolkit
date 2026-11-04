@@ -33,8 +33,13 @@ single-use browser handoff so the user keeps their identity.
 ## Configuration
 
 `GEMINI_API_KEY` and optional `TMUX_MOBILE_REPORT_MODEL` configure local use.
-Production uses `transcripts/reports-v1/config.enc.json` in the private transcript
-bucket, encrypted with AES-256-GCM using a key derived from `SESSION_SECRET`,
+Production uses `private-config/progress-reports-v1.enc.json` relative to the
+existing private artifact storage prefix, outside temporary-upload retention.
+The old `reports-v1/config.enc.json` in transcript storage remains a read fallback
+for migration; do not rely on it for durable configuration because archive
+retention also expires that object. Copy the existing encrypted envelope to the
+durable location, preserving all fields, before releasing the updated reader.
+Configuration is encrypted with AES-256-GCM using a key derived from `SESSION_SECRET`,
 plus S3 server-side encryption. Only the server decrypts it. No API returns this
 object or its secret. This reuses existing task storage permissions and does not
 require IAM or ECS task-definition changes. Re-provision the encrypted config

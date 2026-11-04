@@ -45,8 +45,8 @@ bounded deadline and keeps the draft. See the [official transcription guide](htt
 and [WebSocket reference](https://ai.google.dev/api/live).
 
 Gemini's key stays on the Controller. Local configuration uses `GEMINI_API_KEY`;
-production reuses `loadReportConfig` and the existing encrypted
-`reports-v1/config.enc.json` in private transcript storage, decrypted with
+production reuses `loadReportConfig` and the encrypted report configuration in
+private artifact storage (with the legacy transcript-storage fallback), decrypted with
 `SESSION_SECRET`. See [Progress reports](progress-reports.md). Loading the key
 for ASR does not alter the report model or scheduler. The key is sent only in
 the Google socket's server-side header, never to a browser or share URL. A

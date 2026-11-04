@@ -12,9 +12,13 @@ const dayStart = ms => Math.floor((ms + OFFSET) / DAY) * DAY - OFFSET;
 export const reportId = (kind, start) => `${kind}-${iso(start).slice(0, 13).replace(/[-:]/g, '')}`;
 export const validReportId = id => /^(hourly|daily)-\d{8}T\d{2}$/.test(id);
 
-export async function loadReportConfig(storage, env = process.env) {
+// Keep credentials outside the transcript archive's retention policy. Existing
+// installations can still read the legacy encrypted object during migration.
+export const REPORT_CONFIG_KEY = 'private-config/progress-reports-v1.enc.json';
+export async function loadReportConfig(storage, env = process.env, { configStorage } = {}) {
   if (env.GEMINI_API_KEY) return { apiKey: env.GEMINI_API_KEY, model: env.TMUX_MOBILE_REPORT_MODEL || 'gemini-3.8-flash' };
-  const stored = await storage.get(`${ROOT}config.enc.json`, { signal: AbortSignal.timeout(20_000) });
+  const stored = await configStorage?.get(REPORT_CONFIG_KEY, { signal: AbortSignal.timeout(20_000) })
+    || await storage.get(`${ROOT}config.enc.json`, { signal: AbortSignal.timeout(20_000) });
   if (!stored) return null;
   if (!env.SESSION_SECRET) throw new Error('Report configuration requires SESSION_SECRET');
   const value = JSON.parse(stored.bytes.toString());
