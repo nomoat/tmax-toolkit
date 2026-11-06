@@ -100,8 +100,11 @@ A successful send, a running process, or a generic `>` alone is insufficient.
 Pi's normal interactive startup is the bare `pi` command, not `--print`, JSON/RPC
 mode or `--no-session`. Its model/provider readiness is separate from shell
 readiness; an authentication or provider error is a blocker, not a ready worker.
-For multi-agent work, follow `tmax-multi-agent`'s model/effort preflight after
-startup and before assigning implementation work.
+After startup, use `tmax-config-agent` to apply and verify the standing model
+preference before assigning work: Codex uses GPT-6.1 Sol with xhigh; Claude Code
+uses Opus 5.5. A user's explicit model choice takes precedence. Do not select
+Astra or Fable merely because they are the highest-ranked available models.
+For multi-agent work, also follow `tmax-multi-agent`'s model/effort preflight.
 
 Check the final state twice briefly apart; use `tmux display-message` / process
 inspection as needed to confirm the cwd and that the agent has not exited back

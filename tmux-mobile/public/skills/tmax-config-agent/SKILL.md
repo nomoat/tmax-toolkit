@@ -10,6 +10,23 @@ Use T-MAX's **tmux** backend only, on the target machine's normal tmux server.
 Do not create an Rmax/Rmux session or a separate socket. This Skill works when
 invoked by Claude Code, Codex or Pi and can operate any of those three agents.
 
+## Standing model preference
+
+Unless the user specifies another model, use these defaults:
+
+- Codex: **GPT-6.1 Sol** (`gpt-6.1-sol`), **Extra high** (`xhigh`).
+- Claude Code: **Claude Opus 5.5** (`claude-opus-5-5`), preserving the
+  existing thinking effort unless the user requests a change.
+- For Pi, apply the corresponding model preference when its selected provider
+  is OpenAI or Anthropic; do not switch providers implicitly.
+
+Do not automatically select Astra, Fable, Max or Ultra because they rank higher
+in a menu. These preferences balance capability and usage. Verify availability
+and the effective setting in the live runtime. If the exact requested model is
+unavailable, report that limitation; do not silently substitute another model.
+For existing sessions, change the session setting without interrupting running
+work or erasing unsent input. Change global defaults only when requested.
+
 ## Locate and inspect the target
 
 Resolve the machine, session/window and requested change from the conversation.

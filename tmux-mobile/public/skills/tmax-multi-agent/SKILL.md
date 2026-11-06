@@ -79,21 +79,18 @@ as soon as created; this ID is different from a tmux session ID or pane ID.
 Never use an internal subagent ID as a substitute for a visible T-MAX session.
 
 Before any implementation assignment, verify the worker's effective provider,
-model and reasoning/thinking effort using `tmax-config-agent`. Unless the user
-specifies otherwise, choose the highest-capability model available to that worker
-and the highest effort that the selected model/runtime actually supports. Check
-the current model menu/catalog and status, rather than assuming the shell's default
-or a launch flag took effect. Record exact model ID, effort, verification time and
-evidence; briefly report the choices to the user. This standing preference permits
-the selection without asking for the same approval again.
+model and reasoning/thinking effort using `tmax-config-agent`. Follow that Skill's
+standing preference unless the user specifies otherwise: **GPT-6.1 Sol / xhigh**
+for Codex and **Claude Opus 5.5** for Claude Code. Do not select Astra or Fable,
+or increase effort to Max/Ultra, just because those choices rank higher.
 
-Names such as o1 and levels such as extra-high/ultra are examples, not permanent
-model pins or interchangeable settings. Resolve current capabilities every time;
-never infer quality from a model's price or choose a cheap/mini/fast tier merely
-because it starts successfully. If the intended model/effort is unavailable or
-cannot be verified, mark the worker blocked and resolve the choice before assigning
-implementation. Do not silently lower quality. Verify again after replacements,
-resumes, provider changes, or observed automatic fallback. Respect explicit cost
+Check the current model menu/catalog and status rather than assuming a shell
+setting or launch flag took effect. Record the exact model ID, effort,
+verification time and evidence. This standing preference permits the selection
+without asking for the same approval again. If the intended model or effort is
+unavailable or cannot be verified, report that limitation before assigning work;
+do not silently substitute a different model. Verify again after replacements,
+resumes, provider changes or observed automatic fallback. Respect explicit cost
 and concurrency limits; this rule does not authorize purchasing credits.
 
 Use `tmax-assign-task` to deliver one self-contained assignment to the verified
