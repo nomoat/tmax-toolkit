@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Platform, StyleSheet, Text, View, type StyleProp, type TextStyle } from "react-native";
 import { parseAnsiLines, renderAnsiText, type AnsiLine } from "./ansi";
+import { reconcileTerminalLines, type TerminalLineState } from "./terminal-lines";
 
 type Props = { text: string; style: StyleProp<TextStyle>; onLongPress: () => void };
 const androidLineStyle: TextStyle = { includeFontPadding: false };
@@ -24,6 +25,9 @@ export function TerminalOutput({ text, style, onLongPress }: Props) {
   const output = text || "No output.";
   const lines = React.useMemo(() => android ? parseAnsiLines(output) : [], [android, output]);
   const nodes = React.useMemo(() => android ? [] : renderAnsiText(output), [android, output]);
+  const committedLines = React.useRef<TerminalLineState>({ rows: [], nextKey: 0 });
+  const lineState = React.useMemo(() => reconcileTerminalLines(lines, committedLines.current), [lines]);
+  React.useLayoutEffect(() => { committedLines.current = lineState; }, [lineState]);
   const latestLongPress = React.useRef(onLongPress);
   React.useLayoutEffect(() => { latestLongPress.current = onLongPress; }, [onLongPress]);
   const selectText = React.useCallback(() => latestLongPress.current(), []);
@@ -35,6 +39,6 @@ export function TerminalOutput({ text, style, onLongPress }: Props) {
   return <View accessible accessibilityLabel="Terminal output" accessibilityHint="Long-press to open text selection"
     accessibilityActions={[{ name: "longpress", label: "Select terminal output" }]}
     onAccessibilityAction={event => { if (event.nativeEvent.actionName === "longpress") selectText(); }}>
-    {lines.map((line, index) => <TerminalLine key={index} line={line} style={style} styleKey={styleKey} onLongPress={selectText} />)}
+    {lineState.rows.map(({ key, line }) => <TerminalLine key={key} line={line} style={style} styleKey={styleKey} onLongPress={selectText} />)}
   </View>;
 }

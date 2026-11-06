@@ -174,6 +174,11 @@ large Android span collection for each changed capture. iOS keeps its existing
 single-Text renderer. Follow, pinch zoom and full-output selection use the same
 capture and controls.
 
+Line identities also survive a rolling tail: dropping an old line and appending
+a new one retains the other native paragraphs, including duplicate and blank
+lines. Editing a line in place retains its paragraph key. This keeps memoization
+effective as terminal output scrolls, without adding captured text to React keys.
+
 This is JavaScript-only. Publish the Android production OTA separately for
 runtime 7 and the runtime 6 backport with its existing dependencies. No new native
 build is required. The publication check accepts the Controller's timestamp and
