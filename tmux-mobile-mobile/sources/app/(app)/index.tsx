@@ -124,7 +124,8 @@ import type { TmuxMobileApi } from "@/tmux-mobile/api";
 import { useTmuxMobileApi, useTmuxMobileAuth } from "@/tmux-mobile/auth";
 import { sshDeviceIdentityManager } from "@/tmux-mobile/ssh-device-identity-storage";
 import { terminalSelectionText, transcriptSelectionText } from "@/tmux-mobile/text-selection-content";
-import { renderAnsiText, stripUnsupportedAnsi } from "@/tmux-mobile/ansi";
+import { stripUnsupportedAnsi } from "@/tmux-mobile/ansi";
+import { TerminalOutput } from "@/tmux-mobile/terminal-output";
 import {
   cardStarsKey,
   commandCenterKey,
@@ -5820,7 +5821,6 @@ function WindowViewModal({
     return () => clearInterval(timer);
   }, [activePaneId, api, refreshCapture, target, selection]);
 
-  const terminalNodes = React.useMemo(() => renderAnsiText(terminalText), [terminalText]);
   const terminalShouldFollow = terminalFollow && !selection;
   const updateTerminalFollowFromScroll = React.useCallback((metrics: {
     offsetY: number;
@@ -6300,9 +6300,8 @@ function WindowViewModal({
             keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
             keyboardShouldPersistTaps="handled"
           >
-            <Text accessibilityLabel="Terminal output" accessibilityHint="Long-press to open text selection" onLongPress={selectTerminalText} style={[styles.terminalText, terminalTextZoomStyle]}>
-              {terminalText ? terminalNodes : "No output."}
-            </Text>
+            <TerminalOutput text={terminalText} onLongPress={selectTerminalText}
+              style={[styles.terminalText, terminalTextZoomStyle]} />
           </ScrollView>
         </GestureDetector>
       </View>

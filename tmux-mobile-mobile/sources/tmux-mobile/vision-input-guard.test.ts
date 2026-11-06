@@ -97,16 +97,7 @@ describe("Terminal ANSI rendering", () => {
         : ts.isJsxElement(node)
           ? node.openingElement
           : null;
-      const accessibilityLabel = opening?.attributes.properties.find(
-        (attribute) =>
-          ts.isJsxAttribute(attribute) &&
-          attribute.name.getText(appSourceFile) === "accessibilityLabel" &&
-          attribute.initializer &&
-          ts.isStringLiteral(attribute.initializer) &&
-          attribute.initializer.text === "Terminal output",
-      );
-
-      if (opening && accessibilityLabel) {
+      if (opening && tagName(opening) === "TerminalOutput") {
         terminalOutputs.push({
           tag: tagName(opening),
           contents: node.getText(appSourceFile),
@@ -119,12 +110,14 @@ describe("Terminal ANSI rendering", () => {
     visit(appSourceFile);
 
     expect(terminalOutputs).toHaveLength(1);
-    expect(terminalOutputs[0].tag).toBe("Text");
-    expect(terminalOutputs[0].contents).toContain("terminalNodes");
+    expect(terminalOutputs[0].tag).toBe("TerminalOutput");
+    expect(terminalOutputs[0].contents).toContain("text={terminalText}");
+    expect(terminalOutputs[0].contents).toContain("onLongPress={selectTerminalText}");
     expect(terminalOutputs[0].contents).not.toContain("terminalPlainText");
-    expect(appSource).toContain(
-      "const terminalNodes = React.useMemo(() => renderAnsiText(terminalText), [terminalText]);",
-    );
+    const outputSource = readFileSync(new URL("./terminal-output.tsx", import.meta.url), "utf8");
+    expect(outputSource).not.toContain("TextInput");
+    expect(outputSource).toContain("renderAnsiText(output)");
+    expect(outputSource).toContain("parseAnsiLines(output)");
   });
 });
 

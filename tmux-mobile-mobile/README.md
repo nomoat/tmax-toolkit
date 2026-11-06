@@ -202,3 +202,17 @@ These are JavaScript-only updates for runtime 7 iOS/Android and the runtime 6
 Android backport using its own lockfile. Native preview checks cover narrow/wide
 layouts, light/dark themes and dictation states; actual gaze selection and
 microphone comfort still require Vision Pro hardware.
+
+## Android Terminal paragraphs (2026-11-06)
+
+Android renders Terminal output as independent native text paragraphs per line.
+ANSI formatting carries across lines, adjacent equal styles are merged, and
+unchanged lines are memoized during capture updates. This avoids rebuilding one
+large Android span collection for each changed capture. iOS keeps its existing
+single-Text renderer. Follow, pinch zoom and full-output selection use the same
+capture and controls.
+
+This is JavaScript-only. Publish the Android production OTA separately for
+runtime 7 and the runtime 6 backport with its existing dependencies. No new native
+build is required. The publication check accepts the Controller's timestamp and
+skills release labels, and still verifies the exact committed Web contract.
