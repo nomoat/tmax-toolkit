@@ -62,8 +62,8 @@ name, for example `<project>-api-g2`. Reuse the existing worktree only after the
 old writer is quiescent. Changing machines also requires transferring unfinished
 files privately and verifying their contents; a Git branch alone omits them.
 
-Use `tmax-config-agent` to verify the effective model and highest supported effort
-under the user's quality preference. Launch the actual target CLI; do not pass a
+Use `tmax-config-agent` to verify the effective model and effort against its
+standing preference or the user's explicit choice. Launch the actual target CLI; do not pass a
 Codex session ID to Claude/Pi's native resume command or claim cross-runtime
 resume is automatic.
 
