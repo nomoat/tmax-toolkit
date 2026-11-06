@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { deployedRevisionCommit } from '../sources/tmux-mobile/deployed-revision.js';
 
 const args = process.argv.slice(2);
 const sourceIndex = args.indexOf('--source');
@@ -30,7 +31,7 @@ if (deployedIndex >= 0) {
   const response = await fetch(new URL('/api/health', controller), { redirect: 'error' });
   if (!response.ok) throw new Error(`Cannot read deployed revision: HTTP ${response.status}`);
   const health = await response.json();
-  const commit = /^([0-9a-f]{7,40})-\d{8}T\d{6}Z$/.exec(health.revision || '')?.[1];
+  const commit = deployedRevisionCommit(health.revision);
   if (!commit) throw new Error('Controller must serve a clean, committed revision before OTA publication');
   const atCommit = name => execFileSync('gh', ['api', `repos/nomoat/tmax-toolkit/contents/tmux-mobile/public/${name}?ref=${commit}`, '-H', 'Accept: application/vnd.github.raw+json'], { encoding: 'utf8' });
   content = atCommit('card-actions.js');

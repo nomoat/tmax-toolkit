@@ -152,28 +152,64 @@ export function stripUnsupportedAnsi(text: string): string {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1A\x1C-\x1F\x7F]/g, "");
 }
 
-export function renderAnsiText(text: string, options: { selectable?: boolean } = {}): React.ReactNode[] {
+function visitAnsiText(text: string, emit: (text: string, style: TextStyle | null) => void): void {
   const input = String(text || "");
   const sgr = /\x1B\[([0-9;:]*)m/g;
   const state = freshAnsiState();
-  const nodes: React.ReactNode[] = [];
   let last = 0;
-  let index = 0;
   let match: RegExpExecArray | null;
 
-  const emit = (chunk: string) => {
+  const emitChunk = (chunk: string) => {
     const clean = stripUnsupportedAnsi(chunk);
     if (!clean) return;
-    const style = ansiTextStyle(state);
-    nodes.push(style ? <Text key={`ansi-${index}`} selectable={options.selectable} style={style}>{clean}</Text> : clean);
-    index += 1;
+    emit(clean, ansiTextStyle(state));
   };
 
   while ((match = sgr.exec(input)) !== null) {
-    emit(input.slice(last, match.index));
+    emitChunk(input.slice(last, match.index));
     applyAnsiSgr(state, match[1].replace(/:/g, ";"));
     last = sgr.lastIndex;
   }
-  emit(input.slice(last));
+  emitChunk(input.slice(last));
+}
+
+export function renderAnsiText(text: string, options: { selectable?: boolean } = {}): React.ReactNode[] {
+  const nodes: React.ReactNode[] = [];
+  visitAnsiText(text, (clean, style) => {
+    nodes.push(style ? <Text key={`ansi-${nodes.length}`} selectable={options.selectable} style={style}>{clean}</Text> : clean);
+  });
   return nodes;
+}
+
+export type AnsiLine = {
+  runs: Array<{ text: string; style: TextStyle | null }>;
+  signature: string;
+};
+
+// Parse once for the whole capture: SGR state must carry across line boundaries.
+// Each line can then become a separate native paragraph on Android, avoiding a
+// single SpannableStringBuilder with thousands of spans and repeated reindexing.
+export function parseAnsiLines(text: string): AnsiLine[] {
+  const lines: AnsiLine[] = [];
+  let runs: AnsiLine["runs"] = [];
+  let previousStyleKey: string | undefined;
+  const finishLine = () => {
+    lines.push({ runs, signature: JSON.stringify(runs) });
+    runs = [];
+    previousStyleKey = undefined;
+  };
+  visitAnsiText(text, (clean, style) => {
+    const styleKey = JSON.stringify(style);
+    const parts = clean.split("\n");
+    parts.forEach((part, index) => {
+      if (index > 0) finishLine();
+      if (!part) return;
+      const previous = runs[runs.length - 1];
+      if (previous && previousStyleKey === styleKey) previous.text += part;
+      else runs.push({ text: part, style });
+      previousStyleKey = styleKey;
+    });
+  });
+  finishLine();
+  return lines;
 }
