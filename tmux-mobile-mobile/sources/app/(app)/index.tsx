@@ -2366,7 +2366,10 @@ function AgentCard({
   const fontScale = useFontScale();
   const queryClient = useQueryClient();
   const markdownStyle = React.useMemo(() => createMarkdownStyles(theme, fontScale), [theme, fontScale]);
-  const markdownRules = React.useMemo(() => createMarkdownPathRules(onOpenFile, { agent, selectable: false }), [onOpenFile, agent]);
+  const latestOpenFile = React.useRef(onOpenFile);
+  React.useLayoutEffect(() => { latestOpenFile.current = onOpenFile; }, [onOpenFile]);
+  const openFile = React.useCallback((path: string) => latestOpenFile.current(path), []);
+  const markdownRules = React.useMemo(() => createMarkdownPathRules(openFile, { agent, selectable: false }), [openFile, agent]);
   const status = agent.waitingForInput ? "waiting" : agent.status || agent.turn || "unverified";
   const running = status === "running";
   const summary = sessionCardSummary(agent);

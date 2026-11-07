@@ -11,10 +11,10 @@ export type SessionCardFoldStateOptions = {
   manuallyExpanded: boolean;
 };
 
-/** Compact accordion cards are an iPhone-only presentation. */
+/** Ordinary native clients share the same compact card presentation. */
 export function shouldFoldSessionCards(platform: CardFoldingPlatform): boolean {
   return (
-    platform.os === "ios" &&
+    (platform.os === "ios" || platform.os === "android") &&
     !platform.isPad &&
     !platform.isVision &&
     !platform.visionDeviceDetected
@@ -23,7 +23,7 @@ export function shouldFoldSessionCards(platform: CardFoldingPlatform): boolean {
 
 /**
  * Recent cards use the full presentation because the same fourteen-hour activity
- * signal also gives them their emphasized timestamp. Only muted/stale iPhone
+ * signal also gives them their emphasized timestamp. Only muted/stale native
  * cards participate in the compact accordion.
  */
 export function sessionCardFoldState({
