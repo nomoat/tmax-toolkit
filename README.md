@@ -183,3 +183,15 @@ This is JavaScript-only. Publish the Android production OTA separately for
 runtime 7 and the runtime 6 backport with its existing dependencies. No new native
 build is required. The publication check accepts the Controller's timestamp and
 skills release labels, and still verifies the exact committed Web contract.
+
+## Native card parity (2026-11-06)
+
+Ordinary Android and iOS clients share the same card folding rules: recent cards
+stay expanded, stale cards start collapsed, and opening or jumping to a stale
+card expands its body. Existing large-screen and Vision presentation exceptions
+are preserved. Android no longer eagerly expands every stale card.
+
+Unchanged card Markdown also retains its rules when a parent callback changes;
+file links still call the latest handler. This avoids parsing and rebuilding
+retained replies during computer filtering and other parent updates. These are
+JavaScript-only changes and require no new native build.

@@ -5,23 +5,23 @@ import {
 } from "@/tmux-mobile/card-folding";
 
 describe("shouldFoldSessionCards", () => {
-  it("enables the accordion only on iPhone", () => {
+  it("uses the same accordion on ordinary iOS and Android clients", () => {
     expect(shouldFoldSessionCards({ os: "ios" })).toBe(true);
+    expect(shouldFoldSessionCards({ os: "android" })).toBe(true);
     expect(shouldFoldSessionCards({ os: "ios", isPad: true })).toBe(false);
     expect(shouldFoldSessionCards({ os: "ios", isVision: true })).toBe(false);
   });
 
-  it("keeps Vision compatibility mode and non-iOS platforms expanded", () => {
+  it("keeps Vision compatibility mode and web expanded", () => {
     expect(
       shouldFoldSessionCards({ os: "ios", visionDeviceDetected: true }),
     ).toBe(false);
-    expect(shouldFoldSessionCards({ os: "android" })).toBe(false);
     expect(shouldFoldSessionCards({ os: "web" })).toBe(false);
   });
 });
 
 describe("sessionCardFoldState", () => {
-  it("keeps every recent emphasized iPhone card expanded", () => {
+  it("keeps every recent emphasized native card expanded", () => {
     expect(
       sessionCardFoldState({
         foldSessionCards: true,
@@ -31,7 +31,7 @@ describe("sessionCardFoldState", () => {
     ).toEqual({ collapsible: false, expanded: true });
   });
 
-  it("defaults muted iPhone cards to collapsed but permits a manual expansion", () => {
+  it("defaults muted native cards to collapsed but permits a manual expansion", () => {
     expect(
       sessionCardFoldState({
         foldSessionCards: true,
@@ -56,5 +56,20 @@ describe("sessionCardFoldState", () => {
         manuallyExpanded: false,
       }),
     ).toEqual({ collapsible: false, expanded: true });
+  });
+
+  it.each([
+    { recentActivity: false, manuallyExpanded: false, expected: { collapsible: true, expanded: false } },
+    { recentActivity: false, manuallyExpanded: true, expected: { collapsible: true, expanded: true } },
+    { recentActivity: true, manuallyExpanded: false, expected: { collapsible: false, expanded: true } },
+    { recentActivity: true, manuallyExpanded: true, expected: { collapsible: false, expanded: true } },
+  ])("keeps iOS and Android in parity for $recentActivity / $manuallyExpanded", ({ recentActivity, manuallyExpanded, expected }) => {
+    for (const os of ["ios", "android"]) {
+      expect(sessionCardFoldState({
+        foldSessionCards: shouldFoldSessionCards({ os }),
+        recentActivity,
+        manuallyExpanded,
+      })).toEqual(expected);
+    }
   });
 });
