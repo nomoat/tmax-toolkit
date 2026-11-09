@@ -11,7 +11,7 @@ import { textSelectionHtml } from './text-selection-html';
 export type TextSelectionTarget = { title: string; text: string; monospace?: boolean };
 export function SelectableTextPage({ text, theme, monospace = false }: { text: string; theme: AppTheme; monospace?: boolean }) {
   const source = React.useMemo(() => ({ html: textSelectionHtml(text, theme.colors.background, theme.colors.text, theme.dark, monospace) }), [text, theme.colors.background, theme.colors.text, theme.dark, monospace]);
-  return <WebView source={source} originWhitelist={['*']} javaScriptEnabled={false} dataDetectorTypes="none"
+  return <WebView source={source} originWhitelist={['*']} javaScriptEnabled={false} dataDetectorTypes={['none']}
     onShouldStartLoadWithRequest={request => request.url === 'about:blank'}
     style={{ flex: 1, backgroundColor: theme.colors.background }} />;
 }

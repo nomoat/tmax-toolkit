@@ -97,6 +97,12 @@ copying removes ANSI controls and keeps all captured lines. Light and dark
 selection colors remain readable. Ship this JavaScript-only change to runtime 7
 iOS/Android and runtime 6 Android from its own checkout and dependencies.
 
+The shared selection WebView passes `dataDetectorTypes` as `['none']`. Android's
+Fabric native setter requires an array even though the public WebView type also
+accepts a string; iOS already normalizes strings to arrays. A string can fail
+when opening selection for even one static line. This JavaScript-only fix ships
+to Android runtime 7 and runtime 6 without a native build.
+
 ## Session picker and temporary uploads (2026-10-27)
 
 The lower-right floating List button opens the same session picker as the header.
