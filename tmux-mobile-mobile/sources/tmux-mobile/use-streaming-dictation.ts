@@ -17,6 +17,7 @@ import {
 } from "expo-file-system/legacy";
 import { toByteArray } from "base64-js";
 import { holdDictationScreenAwake } from "./dictation-screen-awake";
+import { androidPhoneMicrophone, type MicrophoneStream } from "./phone-microphone";
 import type { TmuxMobileApi } from "./api";
 import {
   createPcmResampler,
@@ -34,19 +35,7 @@ const NativeWebSocket = WebSocket as unknown as {
   ): WebSocket;
 };
 
-type NativeStream = {
-  start(): Promise<void>;
-  stop(): void;
-  release(): void;
-  addListener(
-    name: string,
-    callback: (buffer: {
-      data: ArrayBuffer;
-      sampleRate: number;
-      channels: number;
-    }) => void,
-  ): { remove(): void };
-};
+type NativeStream = MicrophoneStream;
 type Capture = {
   screenAwake?: ReturnType<typeof holdDictationScreenAwake>;
   session?: StreamingAsrSession;
@@ -146,7 +135,7 @@ export function useStreamingDictation({
       }
       if (state.uri)
         await deleteAsync(state.uri, { idempotent: true }).catch(() => {});
-      await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
+      if (Platform.OS !== "android") await setAudioModeAsync({ allowsRecording: false }).catch(() => {});
       await screenReleased;
     })();
     pendingCleanup.current = state.cleanup;
@@ -248,7 +237,7 @@ export function useStreamingDictation({
       text: config.value, provider: "", result, complete,
       offset: 0,
       cancelled: false,
-      format: Stream ? "pcm16" : Platform.OS === "ios" ? "wav" : "aac",
+      format: Platform.OS === "android" || Stream ? "pcm16" : Platform.OS === "ios" ? "wav" : "aac",
     };
     current.current = state;
     setMode("connecting");
@@ -272,7 +261,8 @@ export function useStreamingDictation({
         if (!valid()) return;
         if (!permission.granted)
           throw new Error("Microphone permission denied.");
-        await setAudioModeAsync({
+        const RecordingStream = Platform.OS === "android" ? androidPhoneMicrophone() : Stream;
+        if (Platform.OS !== "android") await setAudioModeAsync({
           allowsRecording: true,
           playsInSilentMode: true,
         });
@@ -311,11 +301,14 @@ export function useStreamingDictation({
         });
         await state.session.start();
         if (!valid()) return;
-        if (Stream) {
-          state.stream = new Stream({
+        if (RecordingStream) {
+          state.stream = new RecordingStream({
             sampleRate: 16000,
             channels: 1,
             encoding: "float32",
+          });
+          if (Platform.OS === "android") state.stream.addListener("audioStreamError", error => {
+            if (valid()) state.session?.cancel(error.message);
           });
           let resample: ReturnType<typeof createPcmResampler> | undefined,
             rate = 0,

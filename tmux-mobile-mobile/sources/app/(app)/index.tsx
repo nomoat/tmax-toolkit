@@ -3303,7 +3303,28 @@ function safelyStopVoiceRecognition() {
   }
 }
 
-function useServerVoiceInput({
+// Android voice entry points share the native phone-only PCM capture. Keep the
+// iOS speech-recognition implementations separate from that platform policy.
+function useAndroidVoiceInput({ scopeKey, onText, onStatus }: {
+  scopeKey: string; onText: (value: string) => void; onStatus: (value: string) => void;
+  contextualStrings: readonly string[]; machineId?: string;
+}) {
+  const api = useTmuxMobileApi();
+  const input = useStreamingDictation({ api, scopeKey, value: "", onChangeText: onText, onStatus });
+  return {
+    active: input.active,
+    recording: input.mode === "recording",
+    transcribing: input.mode === "finishing",
+    toggle: async () => {
+      if (!api) { onStatus("Sign in to use phone microphone dictation."); return; }
+      await input.toggle();
+    },
+  };
+}
+const useServerVoiceInput = Platform.OS === "android" ? useAndroidVoiceInput : useSystemServerVoiceInput;
+const useLocalVoiceInput = Platform.OS === "android" ? useAndroidVoiceInput : useSystemLocalVoiceInput;
+
+function useSystemServerVoiceInput({
   scopeKey,
   machineId,
   onText,
@@ -3559,7 +3580,7 @@ function useServerVoiceInput({
   };
 }
 
-function useLocalVoiceInput({
+function useSystemLocalVoiceInput({
   scopeKey,
   onText,
   onStatus,

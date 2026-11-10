@@ -54,6 +54,26 @@ See the [Expo migration guide](https://github.com/expo/fyi/blob/main/ios-scene-l
 Runtime 7 requires a new native build (Expo 57.0.25 / React Native 0.86.3).
 Do not publish its JavaScript as an OTA for older runtime 6 binaries.
 
+Android runtime 8 adds `modules/tmax-microphone`, which selects the phone's
+built-in microphone before recording and checks actual routing around every
+PCM read and before delivery to JavaScript. Unknown/external audio is dropped;
+a route change away from built-in input stops an established recording and
+preserves the composed text. No global communication device or Bluetooth setting
+is changed. Reply, Terminal and Android form dictation share this capture path.
+Android form dictation uses the signed-in Controller's streaming ASR; before
+sign-in, type the Controller URL instead. iOS retains its existing recording
+implementation and runtime 7.
+
+The Android prebuild plugin denies WebView audio-capture requests because those
+recorders cannot enforce this input policy. Use the app's native dictation
+controls. Other WebView permissions retain their existing handling. The patch
+checks the installed WebView source and fails the build if its contract changes.
+
+Build the Android `apk` EAS profile to distribute this native capability. The
+default Android runtime is 8 (`CJMUX_ANDROID_RUNTIME_VERSION`); the root/iOS
+runtime remains 7 (`CJMUX_RUNTIME_VERSION`). Do not publish runtime 8 JavaScript
+to runtime 6/7 binaries. Those binaries require a new APK for phone-only capture.
+
 ## Paper style (2026-09-27)
 
 The Web and native clients share Instant’s warm paper / forest / orange visual

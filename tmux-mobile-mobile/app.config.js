@@ -4,6 +4,8 @@ const buildTime = process.env.BUILD_TIME || new Date().toISOString();
 const jsVersion = process.env.JS_UPDATE_VERSION || buildTime.replace(/[-:T]/g, "").slice(0, 12);
 // Native scene lifecycle and SDK 57 patches require a new binary, not an OTA to runtime 6.
 const runtimeVersion = process.env.CJMUX_RUNTIME_VERSION || "7";
+// Built-in-only microphone capture adds an Android native module. iOS stays on 7.
+const androidRuntimeVersion = process.env.CJMUX_ANDROID_RUNTIME_VERSION || "8";
 
 export default {
   expo: {
@@ -38,6 +40,7 @@ export default {
       },
     },
     android: {
+      runtimeVersion: androidRuntimeVersion,
       package: "ai.impo.tmuxmobile",
       permissions: [
         "android.permission.RECORD_AUDIO",
@@ -65,6 +68,7 @@ export default {
       "expo-font",
       "expo-asset",
       "expo-audio",
+      "./plugins/with-android-phone-microphone",
       "expo-web-browser",
       [
         "expo-speech-recognition",
