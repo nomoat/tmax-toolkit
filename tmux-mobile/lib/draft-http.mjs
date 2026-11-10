@@ -16,7 +16,7 @@ async function getFrameScript() {
   ));
 }
 const csp =
-  `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: ${ASSET_ORIGIN}; font-src data:; media-src data: blob: ${ASSET_ORIGIN}; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; sandbox allow-scripts`;
+  `default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob: ${ASSET_ORIGIN}; font-src data:; media-src data: blob: ${ASSET_ORIGIN}; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; sandbox allow-scripts allow-downloads`;
 // This is the only anonymous Draft route. It serves the latest document, never
 // comments, machine/session metadata, history, or the private review controls.
 export async function handlePublicDraftHttp(req, res, url, { drafts, assetSessionSecret }) {

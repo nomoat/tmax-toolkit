@@ -76,6 +76,9 @@ try {
   assert.equal((await fetch(api + "/api/drafts")).status, 401);
   assert.equal((await fetch(api + "/agent/drafts")).status, 401);
   assert.equal((await fetch(api + "/draft-client.mjs")).status, 200);
+  const viewerHtml = await (await fetch(api + "/drafts", { headers: { cookie } })).text();
+  assert.match(viewerHtml, /sandbox="allow-scripts allow-downloads"/);
+  assert.doesNotMatch(viewerHtml, /sandbox="[^"]*allow-same-origin/);
   assert.equal((await fetch(api + "/skills/tmax-drafts/SKILL.md")).status, 200);
   assert.equal((await fetch(api + "/skills/install.mjs")).status, 200);
   assert.equal((await fetch(api + "/skills/tmax-drafts/manifest.json")).status, 200);
@@ -213,7 +216,7 @@ try {
   assert.match(await historical.text(), /Full selected explanation/);
   assert.match(
     historical.headers.get("content-security-policy"),
-    /sandbox allow-scripts/,
+    /sandbox allow-scripts allow-downloads/,
   );
   const assetUrl = ASSET_ORIGIN + '/' + machineAssetPrefix(context.machineId) + 'a'.repeat(64) + '.mp4';
   await writeFile(file, `<!doctype html><html><head><title>Media review</title></head><body><p>Selectable media explanation.</p><video controls src="${assetUrl}"></video></body></html>`);

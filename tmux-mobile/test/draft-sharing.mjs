@@ -52,7 +52,7 @@ const page = await serve(`${share.path}?version=1&download=1`);
 assert.equal(page.status, 200);
 assert.match(page.body, /Version two/);
 for (const privateValue of ['Private review feedback', 'private/source', 'secret-session', 'owner@example', 'locateDraftQuote', 'tmax-host', 'Private neighbor']) assert.ok(!page.body.includes(privateValue), privateValue);
-assert.match(page.headers['content-security-policy'], /sandbox allow-scripts/);
+assert.match(page.headers['content-security-policy'], /sandbox allow-scripts allow-downloads/);
 assert.ok(!page.headers['content-security-policy'].includes('allow-same-origin'));
 assert.equal(page.headers['cache-control'], 'private, no-store');
 assert.equal(page.headers['referrer-policy'], 'no-referrer');
