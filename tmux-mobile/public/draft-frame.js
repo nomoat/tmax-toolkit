@@ -104,7 +104,20 @@
     "::highlight(draft-comments){background:#e8c67c80;color:inherit}::highlight(draft-focus){background:#e0914daa;color:inherit}";
   document.head.append(style);
   document.addEventListener("click", (event) => {
-    if (event.target.closest("a")) event.preventDefault();
+    const link = event.target.closest("a");
+    if (!link) return;
+    // Keep navigation blocked; only user clicks on signed managed downloads
+    // may leave the review canvas. The asset service validates the signature.
+    if (event.isTrusted && link.hasAttribute("download")) {
+      try {
+        const url = new URL(link.href);
+        if (url.origin === "https://draft-assets.xyznot.com" &&
+            /^\/[a-f0-9]{64}\/[a-f0-9]{64}\.[a-z0-9]{1,10}$/.test(url.pathname) &&
+            url.searchParams.has("token") && !url.username && !url.password)
+          return;
+      } catch {}
+    }
+    event.preventDefault();
   });
   post({ type: "ready" });
 })();

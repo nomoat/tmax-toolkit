@@ -22,15 +22,18 @@ assert.equal(await validToken('/'+key.replace('.mp4','.png'),token,assetSigningK
 assert.throws(()=>signDraftAssets(url,'m:other',secret),/Invalid Draft asset/);
 assert.equal(signDraftAssets('no assets',machine,undefined),'no assets');
 assert.throws(()=>signDraftAssets(url,machine,undefined),/unavailable/);
-const bytes=Buffer.from('0123456789'), metadata={size:bytes.length,httpEtag:'"etag"',writeHttpMetadata:h=>h.set('content-type','video/mp4')};
+const bytes=Buffer.from('0123456789'), metadata={size:bytes.length,httpEtag:'"etag"',writeHttpMetadata:h=>{h.set('content-type','video/mp4');h.set('content-disposition','attachment; filename="movie.mp4"');}};
 let gets=0;
 const env={READ_KEY:assetSigningKey(secret),ASSETS:{head:async()=>metadata,get:async(k,opts)=>{gets++;const r=opts?.range;return {body:r?bytes.subarray(r.offset,r.offset+r.length):bytes};}}};
 assert.equal((await worker.fetch(new Request(url),env)).status,403);assert.equal(gets,0);
 for(const [range,status,body] of [['bytes=2-5',206,'2345'],['bytes=-3',206,'789'],['bytes=7-',206,'789'],['bytes=999-',416,''],['bytes=1-2,5-6',416,'']]) {
   const response=await worker.fetch(new Request(signed,{headers:{range}}),env);
   assert.equal(response.status,status);assert.equal(await response.text(),body);
+  assert.equal(response.headers.get('content-security-policy'),"default-src 'none'; sandbox allow-downloads");
 }
 const full=await worker.fetch(new Request(signed),env);assert.equal(full.status,200);assert.equal(await full.text(),'0123456789');
+assert.equal(full.headers.get('content-security-policy'),"default-src 'none'; sandbox allow-downloads");
+assert.equal(full.headers.get('content-disposition'),'attachment; filename="movie.mp4"');
 const head=await worker.fetch(new Request(signed,{method:'HEAD'}),env);assert.equal(head.headers.get('content-length'),'10');assert.equal(await head.text(),'');
 const preflight=await worker.fetch(new Request(signed,{method:'OPTIONS'}),env);assert.equal(preflight.status,204);assert.equal(preflight.headers.get('access-control-allow-origin'),'*');
 assert.equal(parseRange('bytes=-0',10),false);

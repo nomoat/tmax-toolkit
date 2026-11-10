@@ -18,9 +18,11 @@ cannot overwrite them. Conditional writes reject concurrent changes. Only the
 owner/admin can change sharing through the authenticated JSON API; read access
 alone does not grant publication rights. Public HTML retains the existing CSP
 sandbox with an opaque origin, no host API access and no external scripts. The
-viewer and document sandbox allow file downloads. Cross-origin media download
-links use attachment Content-Disposition metadata while keeping the existing
-exact-object signatures and private bucket.
+viewer, document and asset response sandbox allow file downloads. The private
+review canvas permits trusted clicks on signed managed asset links with a
+download attribute, while continuing to block other link navigation. Cross-origin
+media downloads use attachment Content-Disposition metadata while keeping the
+existing exact-object signatures and private bucket.
 
 Managed media uses the existing exact-object signed URLs. The bucket remains
 private. Disabling sharing stops new document loads; media URLs already issued

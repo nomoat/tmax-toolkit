@@ -29,7 +29,7 @@ export default {
     if(!await validToken(url.pathname,url.searchParams.get('token'),env.READ_KEY)) return deny('Invalid or expired asset link',403);
     // Sandboxed Drafts have an opaque origin. The token authorizes this exact object;
     // wildcard CORS exposes no cookies or bucket credentials.
-    const headers=new Headers({'access-control-allow-origin':'*','access-control-allow-methods':'GET, HEAD, OPTIONS','access-control-allow-headers':'Range, If-Range','access-control-expose-headers':'Content-Length, Content-Range, Accept-Ranges, ETag','cache-control':'private, no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'; sandbox",'referrer-policy':'no-referrer','accept-ranges':'bytes'});
+    const headers=new Headers({'access-control-allow-origin':'*','access-control-allow-methods':'GET, HEAD, OPTIONS','access-control-allow-headers':'Range, If-Range','access-control-expose-headers':'Content-Length, Content-Range, Accept-Ranges, ETag','cache-control':'private, no-store','x-content-type-options':'nosniff','content-security-policy':"default-src 'none'; sandbox allow-downloads",'referrer-policy':'no-referrer','accept-ranges':'bytes'});
     if(request.method==='OPTIONS') return new Response(null,{status:204,headers});
     const key=url.pathname.slice(1), meta=await env.ASSETS.head(key);
     if(!meta) return deny('Not found',404);
