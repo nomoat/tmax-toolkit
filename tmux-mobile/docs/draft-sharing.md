@@ -17,7 +17,10 @@ kept separately in the existing Draft store (`tmax-draft-sharing`) so publishing
 cannot overwrite them. Conditional writes reject concurrent changes. Only the
 owner/admin can change sharing through the authenticated JSON API; read access
 alone does not grant publication rights. Public HTML retains the existing CSP
-sandbox with an opaque origin, no host API access and no external scripts.
+sandbox with an opaque origin, no host API access and no external scripts. The
+viewer and document sandbox allow file downloads. Cross-origin media download
+links use attachment Content-Disposition metadata while keeping the existing
+exact-object signatures and private bucket.
 
 Managed media uses the existing exact-object signed URLs. The bucket remains
 private. Disabling sharing stops new document loads; media URLs already issued
